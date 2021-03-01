@@ -43,6 +43,8 @@ import jdk.jfr.Event;
 import jdk.jfr.internal.EventWriter;
 import jdk.jfr.internal.JVM;
 import jdk.jfr.internal.LogTag;
+import jdk.jfr.internal.LogLevel;
+import jdk.jfr.internal.Logger;
 
 // Checkstyle: allow synchronization.
 @SuppressWarnings({"static-method", "unused"})
@@ -251,6 +253,7 @@ public final class Target_jdk_jfr_internal_JVM {
     /** See {@link JVM#createJFR}. */
     @Substitute
     private boolean createJFR(boolean simulateFailure) throws IllegalStateException {
+        Logger.log(LogTag.JFR, LogLevel.ERROR, "Hello World!");
         return SubstrateJVM.get().createJFR(simulateFailure);
     }
 
