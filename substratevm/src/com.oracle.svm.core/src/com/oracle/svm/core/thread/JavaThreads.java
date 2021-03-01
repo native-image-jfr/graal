@@ -202,6 +202,7 @@ public abstract class JavaThreads {
 
         Target_java_lang_Thread javaThread = SubstrateUtil.cast(currentThread.get(thread), Target_java_lang_Thread.class);
         javaThread.exit();
+        ThreadListenerSupport.get().afterThreadExit(CurrentIsolate.getCurrentThread(), currentThread.get(thread));
     }
 
     /**
@@ -317,6 +318,7 @@ public abstract class JavaThreads {
     public void initializeIsolate() {
         /* The thread that creates the isolate is considered the "main" thread. */
         currentThread.set(mainThread);
+        ThreadListenerSupport.get().beforeThreadStart(CurrentIsolate.getCurrentThread(), mainThread);
     }
 
     /**
@@ -506,7 +508,6 @@ public abstract class JavaThreads {
 
         try {
             ThreadListenerSupport.get().beforeThreadStart(CurrentIsolate.getCurrentThread(), thread);
-
             if (VMThreads.isTearingDown()) {
                 /*
                  * As a newly started thread, we might not have been interrupted like the Java
@@ -520,7 +521,6 @@ public abstract class JavaThreads {
             dispatchUncaughtException(thread, ex);
         } finally {
             exit(thread);
-            ThreadListenerSupport.get().afterThreadExit(CurrentIsolate.getCurrentThread(), thread);
         }
     }
 
