@@ -46,10 +46,6 @@ final class SubstrateThreadMXBean implements com.sun.management.ThreadMXBean {
 
     private static final String MSG = "ThreadMXBean methods";
 
-    /*
-     * Initial values account for the main thread (a non-daemon thread) that is running without an
-     * explicit notification at startup.
-     */
     private final AtomicLong totalStartedThreadCount = new AtomicLong(0);
     private final AtomicInteger peakThreadCount = new AtomicInteger(0);
     private final AtomicInteger threadCount = new AtomicInteger(0);
