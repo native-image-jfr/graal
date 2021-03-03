@@ -300,6 +300,7 @@ public abstract class JavaThreads {
     public static void assignJavaThread(Thread thread, boolean manuallyStarted) {
         VMError.guarantee(currentThread.get() == null, "overwriting existing java.lang.Thread");
         currentThread.set(thread);
+        ThreadListenerSupport.get().beforeThreadStart(CurrentIsolate.getCurrentThread(), thread);
 
         /* If the thread was manually started, finish initializing it. */
         if (manuallyStarted) {
@@ -507,7 +508,6 @@ public abstract class JavaThreads {
         singleton().beforeThreadRun(thread);
 
         try {
-            ThreadListenerSupport.get().beforeThreadStart(CurrentIsolate.getCurrentThread(), thread);
             if (VMThreads.isTearingDown()) {
                 /*
                  * As a newly started thread, we might not have been interrupted like the Java
