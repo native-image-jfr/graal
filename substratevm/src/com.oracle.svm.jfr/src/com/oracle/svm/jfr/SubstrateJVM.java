@@ -382,17 +382,15 @@ class SubstrateJVM {
 
     /** See {@link JVM#log}. */
     public void log(int tagSetId, int level, String message) {
-        if (level < LogLevel.WARN.ordinal() + 1) {
-            return;
+        if (level >= JfrManager.getLogLevel()) {
+            Log log = Log.log();
+            log.string(getLogTag(tagSetId).toString());
+            log.spaces(1);
+            log.string(getLogLevel(level).toString());
+            log.spaces(1);
+            log.string(message);
+            log.newline();
         }
-
-        Log log = Log.log();
-        log.string(getLogTag(tagSetId).toString());
-        log.spaces(1);
-        log.string(getLogLevel(level).toString());
-        log.spaces(1);
-        log.string(message);
-        log.newline();
     }
 
     /** See {@link JVM#subscribeLogLevel}. */

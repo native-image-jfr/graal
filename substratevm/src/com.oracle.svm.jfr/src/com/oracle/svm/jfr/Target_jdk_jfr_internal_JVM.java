@@ -253,7 +253,7 @@ public final class Target_jdk_jfr_internal_JVM {
     /** See {@link JVM#createJFR}. */
     @Substitute
     private boolean createJFR(boolean simulateFailure) throws IllegalStateException {
-        Logger.log(LogTag.JFR, LogLevel.ERROR, "Hello World!");
+        Logger.log(LogTag.JFR, LogLevel.INFO, "Hello World!");
         return SubstrateJVM.get().createJFR(simulateFailure);
     }
 
