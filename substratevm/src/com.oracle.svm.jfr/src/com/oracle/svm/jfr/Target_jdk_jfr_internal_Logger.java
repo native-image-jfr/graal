@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
-￼* Copyright (c) 2021, Red Hat Inc. All rights reserved.
+ * Copyright (c) 2021, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021, Red Hat Inc. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,10 +30,12 @@ import com.oracle.svm.core.annotate.TargetClass;
 
 import jdk.jfr.internal.LogTag;
 import jdk.jfr.internal.LogLevel;
+import jdk.jfr.internal.Logger;
 
 @TargetClass(value = jdk.jfr.internal.Logger.class, onlyWith = JfrEnabled.class)
 public final class Target_jdk_jfr_internal_Logger {
-    /** See {@Link Logger#shouldLog} */
+    /** See {@link Logger#shouldLog}. */
+    @SuppressWarnings({"unused"})
     @Substitute
     public static boolean shouldLog(LogTag tag, LogLevel level) {
         return true;

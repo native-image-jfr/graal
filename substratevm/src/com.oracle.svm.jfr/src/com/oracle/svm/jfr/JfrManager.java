@@ -86,15 +86,15 @@ public class JfrManager {
 
     private static void parseFlightRecorderLogging(String level) {
         switch(level.toUpperCase()) {
-            case "TRACE": logLevel = LogLevel.TRACE.ordinal()+1;
+            case "TRACE": logLevel = LogLevel.TRACE.ordinal() + 1;
                 break;
-            case "DEBUG": logLevel = LogLevel.DEBUG.ordinal()+1;
+            case "DEBUG": logLevel = LogLevel.DEBUG.ordinal() + 1;
                 break;
-            case "INFO": logLevel = LogLevel.INFO.ordinal()+1;
+            case "INFO": logLevel = LogLevel.INFO.ordinal() + 1;
                 break;
-            case "WARN": logLevel = LogLevel.WARN.ordinal()+1;
+            case "WARN": logLevel = LogLevel.WARN.ordinal() + 1;
                 break;
-            case "ERROR": logLevel = LogLevel.ERROR.ordinal()+1;
+            case "ERROR": logLevel = LogLevel.ERROR.ordinal() + 1;
                 break;
         }
     }
