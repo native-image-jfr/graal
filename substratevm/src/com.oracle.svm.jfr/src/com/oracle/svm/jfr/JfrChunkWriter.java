@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.svm.core.thread.VMOperationControl;
 import org.graalvm.compiler.core.common.NumUtil;
+import org.graalvm.nativeimage.IsolateThread;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 
@@ -43,6 +44,7 @@ import com.oracle.svm.core.SubstrateUtil;
 import com.oracle.svm.core.annotate.Uninterruptible;
 import com.oracle.svm.core.jdk.Target_java_nio_DirectByteBuffer;
 import com.oracle.svm.core.thread.JavaVMOperation;
+import com.oracle.svm.core.thread.VMThreads;
 
 import jdk.jfr.internal.Logger;
 
@@ -408,6 +410,10 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
             // - Flush all thread-local buffers (native & Java) to global JFR memory.
             // - Set all Java EventWriter.notified values
             // - Change the epoch.
+
+            for (IsolateThread thread = VMThreads.firstThread(); thread.isNonNull(); thread = VMThreads.nextThread(thread)) {
+                JfrThreadLocal.notifyEventWriter(thread);
+            }
         }
     }
 }
