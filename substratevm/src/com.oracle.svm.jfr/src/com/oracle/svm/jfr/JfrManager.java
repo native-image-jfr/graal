@@ -45,6 +45,7 @@ import com.oracle.svm.jfr.events.JVMInformation;
 import com.oracle.svm.jfr.events.JavaThreadStatistics;
 import com.oracle.svm.jfr.events.OSInformation;
 import com.oracle.svm.jfr.events.PhysicalMemory;
+import com.oracle.svm.jfr.logging.JfrLogConfiguration;
 
 import jdk.jfr.FlightRecorder;
 import jdk.jfr.internal.LogLevel;
@@ -57,8 +58,6 @@ import jdk.jfr.internal.Logger;
 public class JfrManager {
     private static final String DEFAULT_JFC_NAME = "default";
 
-    private static int logLevel = Integer.MAX_VALUE;
-
     @Platforms(Platform.HOSTED_ONLY.class)
     public JfrManager() {
     }
@@ -69,7 +68,8 @@ public class JfrManager {
     }
 
     void setup() {
-        parseFlightRecorderLogging(Options.FlightRecorderLogging.getValue());
+        // TODO
+        // parseFlightRecorderLogging(Options.FlightRecorderLogging.getValue());
         if (Options.FlightRecorder.getValue()) {
             periodicEventSetup();
             initRecording();
@@ -84,23 +84,9 @@ public class JfrManager {
         }
     }
 
-    private static void parseFlightRecorderLogging(String level) {
-        switch(level.toUpperCase()) {
-            case "TRACE": logLevel = LogLevel.TRACE.ordinal() + 1;
-                break;
-            case "DEBUG": logLevel = LogLevel.DEBUG.ordinal() + 1;
-                break;
-            case "INFO": logLevel = LogLevel.INFO.ordinal() + 1;
-                break;
-            case "WARN": logLevel = LogLevel.WARN.ordinal() + 1;
-                break;
-            case "ERROR": logLevel = LogLevel.ERROR.ordinal() + 1;
-                break;
-        }
-    }
-
-    public static int getLogLevel() {
-        return logLevel;
+    private static void parseFlightRecorderLogging(String option) {
+        // TODO: Empty string
+        JfrLogConfiguration.parse(option);
     }
 
     private static void periodicEventSetup() throws SecurityException {
@@ -259,8 +245,9 @@ public class JfrManager {
         @Option(help = "Start flight recording with options.")//
         public static final RuntimeOptionKey<String> StartFlightRecording = new RuntimeOptionKey<>("");
 
-        @Option(help = "Enable flight recorder logging at the specified level")
+        @Option(help = "TODO")
         public static final RuntimeOptionKey<String> FlightRecorderLogging = new RuntimeOptionKey<>("");
+        // TODO: HELP FUNCTION?
     }
 
     private enum JfrStartArgument {

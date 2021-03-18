@@ -38,6 +38,7 @@ import com.oracle.svm.core.log.Log;
 import com.oracle.svm.core.thread.JavaVMOperation;
 import com.oracle.svm.core.thread.ThreadListener;
 import com.oracle.svm.core.util.VMError;
+import com.oracle.svm.jfr.logging.JfrLogConfiguration;
 
 import jdk.jfr.internal.EventWriter;
 import jdk.jfr.internal.JVM;
@@ -382,7 +383,7 @@ class SubstrateJVM {
 
     /** See {@link JVM#log}. */
     public void log(int tagSetId, int level, String message) {
-        if (level >= JfrManager.getLogLevel()) {
+        if (JfrLogConfiguration.shouldLog(tagSetId, level)) {
             Log log = Log.log();
             log.string(getLogTag(tagSetId).toString());
             log.spaces(1);
