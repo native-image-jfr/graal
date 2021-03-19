@@ -47,6 +47,7 @@ import com.oracle.svm.core.thread.JavaVMOperation;
 import com.oracle.svm.core.thread.VMThreads;
 
 import jdk.jfr.internal.Logger;
+import org.graalvm.word.UnsignedWord;
 
 /**
  * This class is used when writing the in-memory JFR data to a file. For all operations, except
@@ -63,8 +64,11 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     private static final int JFR_VERSION_MINOR = 0;
     private static final int CHUNK_SIZE_OFFSET = 8;
 
+    private static final int BUFFER_FULL_ENOUGH_PERCENTAGE = 50;
+
     private final ReentrantLock lock;
     private final boolean compressedInts;
+    private final JfrGlobalMemory globalMemory;
     private long notificationThreshold;
 
     private String filename;
@@ -73,9 +77,10 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     private long chunkStartNanos;
 
     @Platforms(Platform.HOSTED_ONLY.class)
-    public JfrChunkWriter() {
+    public JfrChunkWriter(JfrGlobalMemory globalMemory) {
         this.lock = new ReentrantLock();
         this.compressedInts = true;
+        this.globalMemory = globalMemory;
     }
 
     @Override
@@ -128,7 +133,7 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     }
 
     public boolean write(JfrBuffer buffer) {
-        assert lock.isHeldByCurrentThread();
+        assert lock.isHeldByCurrentThread()  || VMOperationControl.isDedicatedVMOperationThread() && lock.isLocked();
         int capacity = NumUtil.safeToInt(JfrBufferAccess.getUnflushedSize(buffer).rawValue());
         Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(JfrBufferAccess.getDataStart(buffer).rawValue(), capacity);
         FileChannel fc = file.getChannel();
@@ -386,6 +391,8 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
 
         @Override
         protected void operate() {
+            // Flush global buffers to disk before changing epoch to make room for transferring thread local buffer data
+            persistBuffers(globalMemory);
             changeEpoch();
             try {
                 long constantPoolPosition = writeCheckpointEvent(repositories);
@@ -412,8 +419,36 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
             // - Change the epoch.
 
             for (IsolateThread thread = VMThreads.firstThread(); thread.isNonNull(); thread = VMThreads.nextThread(thread)) {
-                JfrThreadLocal.notifyEventWriter(thread);
+                JfrThreadLocal.flushAndNotifyAtSafepoint(thread);
             }
         }
+    }
+
+    @Uninterruptible(reason = "Epoch must not change while in this method.")
+    private static boolean shouldDiscard() {
+        // TODO: implement
+        return false;
+    }
+
+    public void persistBuffers(JfrGlobalMemory globalMemory) {
+        JfrBuffers buffers = globalMemory.getBuffers();
+        for (int i = 0; i < globalMemory.getBufferCount(); i++) {
+            JfrBuffer buffer = buffers.addressOf(i).read();
+            if (isFullEnough(buffer) && JfrBufferAccess.acquire(buffer)) {
+                boolean shouldNotify = write(buffer);
+                JfrBufferAccess.reinitialize(buffer);
+                JfrBufferAccess.release(buffer);
+
+                if (shouldNotify) {
+                    Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE.notify();
+                }
+            }
+        }
+    }
+
+    @Uninterruptible(reason = "Called from uninterruptible code.", mayBeInlined = true)
+    public static boolean isFullEnough(JfrBuffer buffer) {
+        UnsignedWord bufferTargetSize = buffer.getSize().multiply(100).unsignedDivide(BUFFER_FULL_ENOUGH_PERCENTAGE);
+        return JfrBufferAccess.getAvailableSize(buffer).belowOrEqual(bufferTargetSize);
     }
 }

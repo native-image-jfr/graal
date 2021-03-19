@@ -238,6 +238,31 @@ public class JfrThreadLocal implements ThreadListener {
         return WordFactory.nullPointer();
     }
 
+
+    @Uninterruptible(reason = "Accesses a JFR buffer.")
+    public static void flushAndNotifyAtSafepoint(IsolateThread thread) {
+        if (javaBuffer.get(thread).isNonNull()) {
+            flushBufferAtSafepoint(javaBuffer.get(thread));
+            notifyEventWriter(thread);
+        }
+        if (nativeBuffer.get(thread).isNonNull()) {
+            flushBufferAtSafepoint(nativeBuffer.get(thread));
+        }
+    }
+
+
+    @Uninterruptible(reason = "Accesses a JFR buffer.")
+    private static void flushBufferAtSafepoint(JfrBuffer threadLocalBuffer) {
+        assert threadLocalBuffer.isNonNull();
+        UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(threadLocalBuffer);
+        if (unflushedSize.aboveThan(0)) {
+            JfrGlobalMemory globalMemory = SubstrateJVM.getGlobalMemory();
+            globalMemory.write(threadLocalBuffer, unflushedSize);
+            JfrBufferAccess.reinitialize(threadLocalBuffer);
+        }
+    }
+
+
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     private static void writeDataLoss(JfrBuffer buffer, UnsignedWord unflushedSize) {
         assert buffer.isNonNull();
