@@ -68,8 +68,7 @@ public class JfrManager {
     }
 
     void setup() {
-        // TODO
-        // parseFlightRecorderLogging(Options.FlightRecorderLogging.getValue());
+        parseFlightRecorderLogging(Options.FlightRecorderLogging.getValue());
         if (Options.FlightRecorder.getValue()) {
             periodicEventSetup();
             initRecording();

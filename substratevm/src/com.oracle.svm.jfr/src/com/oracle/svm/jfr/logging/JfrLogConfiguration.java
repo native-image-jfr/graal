@@ -25,6 +25,8 @@
  */
 package com.oracle.svm.jfr.logging;
 
+import com.oracle.svm.core.log.Log;
+
 import jdk.jfr.internal.LogLevel;
 
 import java.util.Set;
@@ -36,17 +38,26 @@ import java.util.Optional;
  */
 public final class JfrLogConfiguration {
     private static JfrLogSelection[] selections;
+    private static boolean loggingEnabled = false;
 
     private JfrLogConfiguration() {}
 
     public static boolean shouldLog(int tagSetId, int level) {
+        if (!loggingEnabled) {
+            return false;
+        }
         Optional<LogLevel> tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
-        // LogLevel#level is not accessible, so have to use ordinal + 1
+        // LogLevel#level is not accessible, so we have to use ordinal + 1
         return tagSetLogLevel.isEmpty() ? false : tagSetLogLevel.get().ordinal() + 1 <= level;
     }
 
     public static void parse(String config) {
-        String[] splitConfig = config.split(",");
+        if (config.isBlank()) {
+            return;
+        }
+        loggingEnabled = true;
+
+        String[] splitConfig = config.toUpperCase().split(",");
         selections = new JfrLogSelection[splitConfig.length];
 
         int index = 0;
@@ -72,21 +83,26 @@ public final class JfrLogConfiguration {
     }
 
     private static class JfrLogSelection {
-        private Set<JfrLogTag> tags;
+        private Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
         private LogLevel level = LogLevel.INFO;
-        private boolean all = false;
         private boolean wildcard = false;
 
         private void parse(String str) {
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
-                level = LogLevel.valueOf(str.substring(equalsIndex + 1));
+                try {
+                    level = LogLevel.valueOf(str.substring(equalsIndex + 1));
+                } catch (IllegalArgumentException | NullPointerException e) {
+                    Log.logStream().println("error: Invalid log level in FlightRecorderLogging "
+                            + str.substring(equalsIndex + 1));
+                    System.exit(1);
+                }
                 str = str.substring(0, equalsIndex);
             }
 
-            if (str.equals("all")) {
-                all = true;
-                tags = EnumSet.allOf(JfrLogTag.class);
+            if (str.equals("ALL")) {
+                wildcard = true;
+                return;
             }
 
             if (str.indexOf('*') > 0) {
@@ -94,9 +110,13 @@ public final class JfrLogConfiguration {
                 str = str.substring(0, str.length() - 1);
             }
 
-            tags  = EnumSet.noneOf(JfrLogTag.class);
             for (String s : str.split("\\+")) {
-                tags.add(JfrLogTag.valueOf(s));
+                try {
+                    tags.add(JfrLogTag.valueOf(s));
+                } catch (IllegalArgumentException | NullPointerException e) {
+                    Log.logStream().println("error: Invalid log tag in FlightRecorderLogging " + s);
+                    System.exit(1);
+                }
             }
         }
     }

@@ -60,8 +60,6 @@ enum JfrLogTagSet {
     private static final Map<Integer, JfrLogTagSet> IDMAP = 
         new HashMap<>((int) (JfrLogTagSet.values().length / 0.75) + 1);
 
-    // Takes in the corresponding jdk.jfr.internal.LogTag log tag set, followed by a list of
-    // JfrLogTag, which represent the log tags that make up the log tag set.
     private JfrLogTagSet(int id, JfrLogTag... tags) {
         this.id = id;
         this.tags = EnumSet.copyOf(Arrays.asList(tags));
