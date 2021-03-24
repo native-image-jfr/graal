@@ -47,12 +47,10 @@ enum JfrLogTagSet {
     JFR_SYSTEM_BYTECODE(4, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.BYTECODE),
     JFR_SYSTEM_PARSER(5, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.PARSER),
     JFR_SYSTEM_METADATA(6, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.METADATA),
-    JFR_SYSTEM_STREAMING(7, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.STREAMING),
-    JFR_SYSTEM_THROTTLE(8, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.THROTTLE),
-    JFR_METADATA(9, JfrLogTag.JFR, JfrLogTag.METADATA),
-    JFR_EVENT(10, JfrLogTag.JFR, JfrLogTag.EVENT),
-    JFR_SETTING(11, JfrLogTag.JFR, JfrLogTag.SETTING),
-    JFR_DCMD(12, JfrLogTag.JFR, JfrLogTag.DCMD);
+    JFR_METADATA(7, JfrLogTag.JFR, JfrLogTag.METADATA),
+    JFR_EVENT(8, JfrLogTag.JFR, JfrLogTag.EVENT),
+    JFR_SETTING(9, JfrLogTag.JFR, JfrLogTag.SETTING),
+    JFR_DCMD(10, JfrLogTag.JFR, JfrLogTag.DCMD);
 
     private final int id;
     private final Set<JfrLogTag> tags;
