@@ -57,7 +57,7 @@ public final class JfrLogConfiguration {
         }
         loggingEnabled = true;
 
-        String[] splitConfig = config.toUpperCase().split(",");
+        String[] splitConfig = config.split(",");
         selections = new JfrLogSelection[splitConfig.length];
 
         int index = 0;
@@ -91,7 +91,7 @@ public final class JfrLogConfiguration {
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
                 try {
-                    level = LogLevel.valueOf(str.substring(equalsIndex + 1));
+                    level = LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
                     Log.logStream().println("error: Invalid log level in FlightRecorderLogging "
                             + str.substring(equalsIndex + 1));
@@ -100,19 +100,19 @@ public final class JfrLogConfiguration {
                 str = str.substring(0, equalsIndex);
             }
 
-            if (str.equals("ALL")) {
+            if (str.toUpperCase().equals("ALL")) {
                 wildcard = true;
                 return;
             }
 
-            if (str.indexOf('*') > 0) {
+            if (str.endsWith("*")) {
                 wildcard = true;
                 str = str.substring(0, str.length() - 1);
             }
 
             for (String s : str.split("\\+")) {
                 try {
-                    tags.add(JfrLogTag.valueOf(s));
+                    tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
                     Log.logStream().println("error: Invalid log tag in FlightRecorderLogging " + s);
                     System.exit(1);

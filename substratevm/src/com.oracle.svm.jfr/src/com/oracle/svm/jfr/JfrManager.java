@@ -84,7 +84,6 @@ public class JfrManager {
     }
 
     private static void parseFlightRecorderLogging(String option) {
-        // TODO: Empty string
         JfrLogConfiguration.parse(option);
     }
 
