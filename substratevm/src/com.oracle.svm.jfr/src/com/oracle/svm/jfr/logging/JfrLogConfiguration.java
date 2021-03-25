@@ -94,7 +94,7 @@ public enum JfrLogConfiguration {
         for (JfrLogSelection selection : selections) {
             if (!selection.matchesATagSet) {
                 Log.log().string("error: No tag set matches tag combination ")
-                    .string(selection.tags.toString()).string(selection.wildcard ? "*" : "")
+                    .string(selection.tags.toString().toLowerCase()).string(selection.wildcard ? "*" : "")
                     .string(" for FlightRecorderLogging").newline();
                 System.exit(1);
             }

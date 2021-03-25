@@ -38,7 +38,7 @@ import java.util.HashMap;
  * A JFR-related log tag set. This class is like {@link jdk.jfr.internal.LogTag}, but with added
  * functionality needed for {@link JfrLogConfiguration}.
  */
-enum JfrLogTagSet {
+public enum JfrLogTagSet {
     JFR(0, JfrLogTag.JFR),
     JFR_SYSTEM(1, JfrLogTag.JFR, JfrLogTag.SYSTEM),
     JFR_SYSTEM_EVENT(2, JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.EVENT),

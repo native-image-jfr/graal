@@ -39,6 +39,7 @@ import com.oracle.svm.core.thread.JavaVMOperation;
 import com.oracle.svm.core.thread.ThreadListener;
 import com.oracle.svm.core.util.VMError;
 import com.oracle.svm.jfr.logging.JfrLogConfiguration;
+import com.oracle.svm.jfr.logging.JfrLogTagSet;
 
 import jdk.jfr.internal.EventWriter;
 import jdk.jfr.internal.JVM;
@@ -65,6 +66,9 @@ class SubstrateJVM {
     // are interested in.
     private volatile boolean recording;
     private byte[] metadataDescriptor;
+
+    private int logLevelFill = 0;
+    private int logTagSetFill = 0;
 
     @Platforms(Platform.HOSTED_ONLY.class)
     SubstrateJVM() {
@@ -383,15 +387,10 @@ class SubstrateJVM {
 
     /** See {@link JVM#log}. */
     public void log(int tagSetId, int level, String message) {
-        // TODO: alignment
         if (JfrLogConfiguration.INSTANCE.shouldLog(tagSetId, level)) {
             Log log = Log.log();
-            log.string(getLogTag(tagSetId).toString());
-            log.spaces(1);
-            log.string(getLogLevel(level).toString());
-            log.spaces(1);
-            log.string(message);
-            log.newline();
+            logDecorations(log, tagSetId, level);
+            log.spaces(1).string(message).newline();
         }
     }
 
@@ -400,12 +399,31 @@ class SubstrateJVM {
         // TODO: implement
     }
 
+    private void logDecorations(Log log, int tagSetId, int level) {
+        String logLevelStr = getLogLevel(level).toString().toLowerCase();
+        String logTagSetStr = getLogTagSet(tagSetId).getTags().toString().toLowerCase().replaceAll("\\s", "");
+        logTagSetStr = logTagSetStr.substring(1, logTagSetStr.length() - 1);
+
+        if (logLevelStr.length() > logLevelFill) {
+            logLevelFill = logLevelStr.length();
+        }
+        if (logTagSetStr.length() > logTagSetFill) {
+            logTagSetFill = logTagSetStr.length();
+        }
+
+        log.character('[');
+        log.string(logLevelStr, logLevelFill, Log.LEFT_ALIGN);
+        log.string("][");
+        log.string(logTagSetStr, logTagSetFill, Log.LEFT_ALIGN);
+        log.character(']');
+    }
+
     private static LogLevel getLogLevel(int level) {
         return LogLevel.values()[level - 1];
     }
 
-    private static LogTag getLogTag(int tagSetId) {
-        return LogTag.values()[tagSetId];
+    private static JfrLogTagSet getLogTagSet(int tagSetId) {
+        return JfrLogTagSet.fromTagSetId(tagSetId);
     }
 
     /** See {@link JVM#getEventWriter}. */
