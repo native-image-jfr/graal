@@ -26,8 +26,8 @@
 package com.oracle.svm.jfr.logging;
 
 /**
- * A JFR-related log tag. This enum contains all log tags that are in at least one JFR-related log
- * tag set.
+ * A JFR-related log tag. This enum contains all log tags that are in at least one
+ * {@link JfrLogTagSet}.
  */
 enum JfrLogTag {
     JFR,

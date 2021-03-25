@@ -84,7 +84,7 @@ public class JfrManager {
     }
 
     private static void parseFlightRecorderLogging(String option) {
-        JfrLogConfiguration.parse(option);
+        JfrLogConfiguration.INSTANCE.parse(option);
     }
 
     private static void periodicEventSetup() throws SecurityException {

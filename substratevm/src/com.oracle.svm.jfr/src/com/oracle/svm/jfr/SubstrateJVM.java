@@ -383,7 +383,8 @@ class SubstrateJVM {
 
     /** See {@link JVM#log}. */
     public void log(int tagSetId, int level, String message) {
-        if (JfrLogConfiguration.shouldLog(tagSetId, level)) {
+        // TODO: alignment
+        if (JfrLogConfiguration.INSTANCE.shouldLog(tagSetId, level)) {
             Log log = Log.log();
             log.string(getLogTag(tagSetId).toString());
             log.spaces(1);

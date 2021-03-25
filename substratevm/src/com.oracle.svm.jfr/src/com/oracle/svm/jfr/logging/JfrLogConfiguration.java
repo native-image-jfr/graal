@@ -38,13 +38,13 @@ import java.util.Set;
 /**
  * Handles configuration for flight recorder logging.
  */
-public final class JfrLogConfiguration {
-    private static JfrLogSelection[] selections;
-    private static boolean loggingEnabled = false;
+public enum JfrLogConfiguration {
+    INSTANCE;
 
-    private JfrLogConfiguration() {}
+    private boolean loggingEnabled = false;
+    private JfrLogSelection[] selections;
 
-    public static boolean shouldLog(int tagSetId, int level) {
+    public boolean shouldLog(int tagSetId, int level) {
         if (!loggingEnabled) {
             return false;
         }
@@ -53,7 +53,7 @@ public final class JfrLogConfiguration {
         return tagSetLogLevel.isEmpty() ? false : tagSetLogLevel.get().ordinal() + 1 <= level;
     }
 
-    public static void parse(String config) {
+    public void parse(String config) {
         if (config.isBlank()) {
             return;
         } else if (config.toUpperCase().equals("HELP")) {
@@ -76,12 +76,12 @@ public final class JfrLogConfiguration {
         verifySelections();
     }
 
-    private static void setLogTagSetLevels() {
+    private void setLogTagSetLevels() {
         for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
             Optional<LogLevel> level = Optional.empty();
             for (JfrLogSelection selection : selections) {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
-                        || (!selection.wildcard && selection.tags.equals(tagSet.getTags()))) {
+                        || (selection.tags.equals(tagSet.getTags()))) {
                     level = Optional.of(selection.level);
                     selection.matchesATagSet = true;
                 }
@@ -90,18 +90,18 @@ public final class JfrLogConfiguration {
         }
     }
 
-    private static void verifySelections() {
+    private void verifySelections() {
         for (JfrLogSelection selection : selections) {
             if (!selection.matchesATagSet) {
                 Log.log().string("error: No tag set matches tag combination ")
-                    .string(selection.tags.toString()).string(selections.wildcard ? "*" : "")
+                    .string(selection.tags.toString()).string(selection.wildcard ? "*" : "")
                     .string(" for FlightRecorderLogging").newline();
                 System.exit(1);
             }
         }
     }
 
-    private static class JfrLogSelection {
+    private class JfrLogSelection {
         private Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
         private LogLevel level = LogLevel.INFO;
         private boolean wildcard = false;
@@ -142,7 +142,7 @@ public final class JfrLogConfiguration {
         }
     }
 
-    private static void printHelp() {
+    private void printHelp() {
         Log log = Log.log();
         log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
         log.string("The syntax and behavior of this option is similar to the -Xlog option of the JDK.").newline();

@@ -26,7 +26,6 @@
 package com.oracle.svm.jfr.logging;
 
 import jdk.jfr.internal.LogLevel;
-import jdk.jfr.internal.LogTag;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -36,8 +35,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * A JFR-related log tag set. There is one for each value in jdk.jfr.internal.LogTag. {@code id}
- * must match with the {@code id} of the corresponding {@link jdk.jfr.internal.LogTag}.
+ * A JFR-related log tag set. This class is like {@link jdk.jfr.internal.LogTag}, but with added
+ * functionality needed for {@link JfrLogConfiguration}.
  */
 enum JfrLogTagSet {
     JFR(0, JfrLogTag.JFR),
@@ -52,11 +51,11 @@ enum JfrLogTagSet {
     JFR_SETTING(9, JfrLogTag.JFR, JfrLogTag.SETTING),
     JFR_DCMD(10, JfrLogTag.JFR, JfrLogTag.DCMD);
 
-    private final int id;
-    private final Set<JfrLogTag> tags;
-    private Optional<LogLevel> level; // Empty = do not log
     private static final Map<Integer, JfrLogTagSet> IDMAP = 
         new HashMap<>((int) (JfrLogTagSet.values().length / 0.75) + 1);
+    private final int id; // Must match the id of corresponding jdk.jfr.internal.LogTag
+    private final Set<JfrLogTag> tags;
+    private Optional<LogLevel> level; // Empty = do not log
 
     private JfrLogTagSet(int id, JfrLogTag... tags) {
         this.id = id;
@@ -73,15 +72,14 @@ enum JfrLogTagSet {
         return IDMAP.get(tagSetId);
     }
 
+    public Set<JfrLogTag> getTags() {
+        return tags;
+    }
     public void setLevel(Optional<LogLevel> level) {
         this.level = level;
     }
 
     public Optional<LogLevel> getLevel() {
         return level;
-    }
-
-    public Set<JfrLogTag> getTags() {
-        return tags;
     }
 }
