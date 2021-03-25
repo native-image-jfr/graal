@@ -426,12 +426,6 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         }
     }
 
-    @Uninterruptible(reason = "Epoch must not change while in this method.")
-    private static boolean shouldDiscard() {
-        // TODO: implement
-        return false;
-    }
-
     public void persistBuffers(JfrGlobalMemory globalMemory) {
         JfrBuffers buffers = globalMemory.getBuffers();
         for (int i = 0; i < globalMemory.getBufferCount(); i++) {
