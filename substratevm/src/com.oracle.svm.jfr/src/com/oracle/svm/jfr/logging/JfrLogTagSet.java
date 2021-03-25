@@ -51,13 +51,13 @@ public enum JfrLogTagSet {
     JFR_SETTING(9, JfrLogTag.JFR, JfrLogTag.SETTING),
     JFR_DCMD(10, JfrLogTag.JFR, JfrLogTag.DCMD);
 
-    private static final Map<Integer, JfrLogTagSet> IDMAP = 
+    private static final Map<Integer, JfrLogTagSet> IDMAP =
         new HashMap<>((int) (JfrLogTagSet.values().length / 0.75) + 1);
     private final int id; // Must match the id of corresponding jdk.jfr.internal.LogTag
     private final Set<JfrLogTag> tags;
     private Optional<LogLevel> level; // Empty = do not log
 
-    private JfrLogTagSet(int id, JfrLogTag... tags) {
+    JfrLogTagSet(int id, JfrLogTag... tags) {
         this.id = id;
         this.tags = EnumSet.copyOf(Arrays.asList(tags));
     }

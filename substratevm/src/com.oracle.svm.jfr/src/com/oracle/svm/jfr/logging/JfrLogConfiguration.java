@@ -27,7 +27,6 @@ package com.oracle.svm.jfr.logging;
 
 import com.oracle.svm.core.log.Log;
 
-import jdk.jfr.internal.Logger;
 import jdk.jfr.internal.LogLevel;
 
 import java.util.Arrays;
@@ -114,7 +113,8 @@ public enum JfrLogConfiguration {
                     level = LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
                     Log.log().string("error: Invalid log level '").string(str.substring(equalsIndex + 1))
-                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.").newline();
+                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.")
+                        .newline();
                     System.exit(1);
                 }
                 str = str.substring(0, equalsIndex);
@@ -135,7 +135,8 @@ public enum JfrLogConfiguration {
                     tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
                     Log.log().string("error: Invalid log tag '").string(s)
-                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.").newline();
+                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.")
+                        .newline();
                     System.exit(1);
                 }
             }
@@ -154,7 +155,7 @@ public enum JfrLogConfiguration {
         log.string("A tag combination without a log level is given a default log level of INFO.").newline();
         log.string("If more than one tag combination applies to the same tag set, the rightmost one will be used.").newline();
         log.string("This option is case insensitive.").newline();
-        log.string("Available log levels:").newline().string(Arrays.toString(LogLevel.values())).newline();
-        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTag.values())).newline();
+        log.string("Available log levels:").newline().string(Arrays.toString(LogLevel.values()).toLowerCase()).newline();
+        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTag.values()).toLowerCase()).newline();
     }
 }
