@@ -53,7 +53,7 @@ public enum JfrLogTagSet {
 
     private static final Map<Integer, JfrLogTagSet> IDMAP =
         new HashMap<>((int) (JfrLogTagSet.values().length / 0.75) + 1);
-    private final int id; // Must match the id of corresponding jdk.jfr.internal.LogTag
+    private final int id; // Must match the id of the corresponding jdk.jfr.internal.LogTag
     private final Set<JfrLogTag> tags;
     private Optional<LogLevel> level; // Empty = do not log
 
@@ -75,6 +75,7 @@ public enum JfrLogTagSet {
     public Set<JfrLogTag> getTags() {
         return tags;
     }
+
     public void setLevel(Optional<LogLevel> level) {
         this.level = level;
     }
