@@ -27,11 +27,13 @@ package com.oracle.svm.jfr.logging;
 
 import com.oracle.svm.core.log.Log;
 
+import jdk.jfr.internal.Logger;
 import jdk.jfr.internal.LogLevel;
 
-import java.util.Set;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Handles configuration for flight recorder logging.
@@ -41,6 +43,8 @@ public final class JfrLogConfiguration {
     private static boolean loggingEnabled = false;
 
     private JfrLogConfiguration() {}
+
+    // TODO: Verify tag selections
 
     public static boolean shouldLog(int tagSetId, int level) {
         if (!loggingEnabled) {
@@ -54,7 +58,11 @@ public final class JfrLogConfiguration {
     public static void parse(String config) {
         if (config.isBlank()) {
             return;
+        } else if (config.toUpperCase().equals("HELP")) {
+            printHelp();
+            System.exit(0);
         }
+
         loggingEnabled = true;
 
         String[] splitConfig = config.split(",");
@@ -93,8 +101,8 @@ public final class JfrLogConfiguration {
                 try {
                     level = LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    Log.logStream().println("error: Invalid log level in FlightRecorderLogging "
-                            + str.substring(equalsIndex + 1));
+                    Log.log().string("error: Invalid log level '").string(str.substring(equalsIndex + 1))
+                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.").newline();
                     System.exit(1);
                 }
                 str = str.substring(0, equalsIndex);
@@ -114,10 +122,26 @@ public final class JfrLogConfiguration {
                 try {
                     tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    Log.logStream().println("error: Invalid log tag in FlightRecorderLogging " + s);
+                    Log.log().string("error: Invalid log tag '").string(s)
+                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.").newline();
                     System.exit(1);
                 }
             }
         }
+    }
+
+    private static void printHelp() {
+        Log log = Log.log();
+        log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
+        log.string("The syntax and behavior of this option is similar to the -Xlog option used for the JDK.").newline();
+        log.string("When this option is not set, logging is disabled.").newline();
+        log.string("Unless wildcard (*) is specified, only log messages tagged with exactly the tags specified will be matched.").newline();
+        log.string("Specifying 'all' instead of a tag combination matches all tag combinations.").newline();
+        log.string("A tag combination without a log level is given a default log level of TRACE.").newline();
+        log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
+        log.string("If more than one tag combination applies to the same tag set, the rightmost one will be used.").newline();
+        log.string("This option is case insensitive.").newline();
+        log.string("Available log levels:").newline().string(Arrays.toString(LogLevel.values())).newline();
+        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTagSet.values())).newline();
     }
 }

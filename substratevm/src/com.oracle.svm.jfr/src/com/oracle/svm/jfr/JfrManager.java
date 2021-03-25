@@ -243,9 +243,8 @@ public class JfrManager {
         @Option(help = "Start flight recording with options.")//
         public static final RuntimeOptionKey<String> StartFlightRecording = new RuntimeOptionKey<>("");
 
-        @Option(help = "TODO")
+        @Option(help = "Set flight recorder logging options. Use -XX:FlightRecorderLogging=help to see help.")//
         public static final RuntimeOptionKey<String> FlightRecorderLogging = new RuntimeOptionKey<>("");
-        // TODO: HELP FUNCTION?
     }
 
     private enum JfrStartArgument {
