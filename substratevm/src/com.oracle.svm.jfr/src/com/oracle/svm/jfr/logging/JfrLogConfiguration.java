@@ -44,8 +44,6 @@ public final class JfrLogConfiguration {
 
     private JfrLogConfiguration() {}
 
-    // TODO: Verify tag selections
-
     public static boolean shouldLog(int tagSetId, int level) {
         if (!loggingEnabled) {
             return false;
@@ -75,6 +73,7 @@ public final class JfrLogConfiguration {
             selections[index++] = selection;
         }
         setLogTagSetLevels();
+        verifySelections();
     }
 
     private static void setLogTagSetLevels() {
@@ -84,9 +83,21 @@ public final class JfrLogConfiguration {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
                         || (!selection.wildcard && selection.tags.equals(tagSet.getTags()))) {
                     level = Optional.of(selection.level);
+                    selection.matchesATagSet = true;
                 }
             }
             tagSet.setLevel(level);
+        }
+    }
+
+    private static void verifySelections() {
+        for (JfrLogSelection selection : selections) {
+            if (!selection.matchesATagSet) {
+                Log.log().string("error: No tag set matches tag combination ")
+                    .string(selection.tags.toString()).string(selections.wildcard ? "*" : "")
+                    .string(" for FlightRecorderLogging").newline();
+                System.exit(1);
+            }
         }
     }
 
@@ -94,6 +105,7 @@ public final class JfrLogConfiguration {
         private Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
         private LogLevel level = LogLevel.INFO;
         private boolean wildcard = false;
+        private boolean matchesATagSet = false;
 
         private void parse(String str) {
             int equalsIndex;
@@ -133,15 +145,16 @@ public final class JfrLogConfiguration {
     private static void printHelp() {
         Log log = Log.log();
         log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
-        log.string("The syntax and behavior of this option is similar to the -Xlog option used for the JDK.").newline();
+        log.string("The syntax and behavior of this option is similar to the -Xlog option of the JDK.").newline();
         log.string("When this option is not set, logging is disabled.").newline();
+        log.string("When this option is set, logging will be enabled for messages with tag sets that match the given log combinations at the level specified.").newline();
+        log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
         log.string("Unless wildcard (*) is specified, only log messages tagged with exactly the tags specified will be matched.").newline();
         log.string("Specifying 'all' instead of a tag combination matches all tag combinations.").newline();
-        log.string("A tag combination without a log level is given a default log level of TRACE.").newline();
-        log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
+        log.string("A tag combination without a log level is given a default log level of INFO.").newline();
         log.string("If more than one tag combination applies to the same tag set, the rightmost one will be used.").newline();
         log.string("This option is case insensitive.").newline();
         log.string("Available log levels:").newline().string(Arrays.toString(LogLevel.values())).newline();
-        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTagSet.values())).newline();
+        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTag.values())).newline();
     }
 }
