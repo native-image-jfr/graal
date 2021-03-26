@@ -45,6 +45,7 @@ import com.oracle.svm.core.jdk.Target_java_nio_DirectByteBuffer;
 import com.oracle.svm.core.thread.JavaVMOperation;
 
 import jdk.jfr.internal.Logger;
+import org.graalvm.word.UnsignedWord;
 
 /**
  * This class is used when writing the in-memory JFR data to a file. For all operations, except
@@ -127,11 +128,13 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
 
     public boolean write(JfrBuffer buffer) {
         assert lock.isHeldByCurrentThread();
-        int capacity = NumUtil.safeToInt(JfrBufferAccess.getUnflushedSize(buffer).rawValue());
-        Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(JfrBufferAccess.getDataStart(buffer).rawValue(), capacity);
+        UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(buffer);
+        int capacity = NumUtil.safeToInt(unflushedSize.rawValue());
+        Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(buffer.getTop().rawValue(), capacity);
         FileChannel fc = file.getChannel();
         try {
             fc.write(SubstrateUtil.cast(bb, ByteBuffer.class));
+            JfrBufferAccess.increaseTop(buffer, unflushedSize);
             return file.getFilePointer() > notificationThreshold;
         } catch (IOException e) {
             Logger.log(JFR_SYSTEM, ERROR, "Error while writing file " + filename + ": " + e.getMessage());
@@ -150,6 +153,7 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     // global JFR memory must also support different epochs.
     public void closeFile(byte[] metadataDescriptor, JfrRepository[] repositories) {
         assert lock.isHeldByCurrentThread();
+        JfrThreadLocalMemory.writeThreadLocalBuffers(this);
         JfrCloseFileOperation op = new JfrCloseFileOperation(metadataDescriptor, repositories);
         op.enqueue();
     }

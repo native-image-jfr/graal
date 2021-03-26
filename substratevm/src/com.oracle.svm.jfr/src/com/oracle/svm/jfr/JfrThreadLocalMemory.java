@@ -34,7 +34,7 @@ public class JfrThreadLocalMemory {
     private static JfrBuffer head;
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
-    public static JfrBuffer getThreadLocalBuffer(long bufferSize) {
+    public static JfrBuffer acquireThreadLocalBuffer(long bufferSize) {
         JfrBuffer node = JfrBufferAccess.allocate(WordFactory.unsigned(bufferSize));
         node.setNext(head);
         head = node;
@@ -64,5 +64,20 @@ public class JfrThreadLocalMemory {
             node = node.getNext();
         }
         return false;
+    }
+
+    public static void writeThreadLocalBuffers(JfrChunkWriter writer) {
+        JfrBuffer node = head;
+        while (node.isNonNull()) {
+            if (!JfrBufferAccess.acquire(node)) {
+                // Thread local buffers are acquired when flushing to promotion buffer
+                // or when flushing to disk. If acquired already, someone else is
+                // handling the data for us
+                return;
+            }
+            writer.write(node);
+            JfrBufferAccess.release(node);
+            node = node.getNext();
+        }
     }
 }

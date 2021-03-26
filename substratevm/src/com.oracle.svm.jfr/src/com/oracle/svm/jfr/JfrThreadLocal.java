@@ -188,7 +188,7 @@ public class JfrThreadLocal implements ThreadListener {
         VMError.guarantee(traceId.get() > 0, "Thread local JFR data must be initialized");
         JfrBuffer result = javaBuffer.get();
         if (result.isNull()) {
-            result = JfrThreadLocalMemory.getThreadLocalBuffer(threadLocalBufferSize);
+            result = JfrThreadLocalMemory.acquireThreadLocalBuffer(threadLocalBufferSize);
             javaBuffer.set(result);
         }
         return result;
@@ -199,7 +199,7 @@ public class JfrThreadLocal implements ThreadListener {
         VMError.guarantee(traceId.get() > 0, "Thread local JFR data must be initialized");
         JfrBuffer result = nativeBuffer.get();
         if (result.isNull()) {
-            result = JfrThreadLocalMemory.getThreadLocalBuffer(threadLocalBufferSize);
+            result = JfrThreadLocalMemory.acquireThreadLocalBuffer(threadLocalBufferSize);
             nativeBuffer.set(result);
         }
         return result;
@@ -208,6 +208,13 @@ public class JfrThreadLocal implements ThreadListener {
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static JfrBuffer flush(JfrBuffer threadLocalBuffer, UnsignedWord uncommitted, int requested) {
         assert threadLocalBuffer.isNonNull();
+
+        if (!JfrBufferAccess.acquire(threadLocalBuffer)) {
+            // Thread local buffers are acquired when flushing to promotion buffer
+            // or when flushing to disk. If acquired already, someone else is
+            // handling the data for us
+            return threadLocalBuffer;
+        }
 
         JfrBuffer result = threadLocalBuffer;
         UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(threadLocalBuffer);
@@ -220,14 +227,17 @@ public class JfrThreadLocal implements ThreadListener {
             } else {
                 JfrBufferAccess.reinitialize(threadLocalBuffer);
                 writeDataLoss(threadLocalBuffer, unflushedSize);
+                JfrBufferAccess.release(threadLocalBuffer);
                 return WordFactory.nullPointer();
             }
         }
 
         assert JfrBufferAccess.getUnflushedSize(threadLocalBuffer).equal(0);
         if (result.getSize().aboveOrEqual(uncommitted.add(requested))) {
+            JfrBufferAccess.release(threadLocalBuffer);
             return result;
         }
+        JfrBufferAccess.release(threadLocalBuffer);
         return WordFactory.nullPointer();
     }
 
