@@ -26,6 +26,7 @@ package com.oracle.svm.jfr;
 
 import org.graalvm.compiler.api.replacements.Fold;
 import org.graalvm.compiler.nodes.NamedLocationIdentity;
+import org.graalvm.compiler.word.Word;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.c.struct.SizeOf;
 import org.graalvm.nativeimage.impl.UnmanagedMemorySupport;
@@ -58,6 +59,7 @@ public final class JfrBufferAccess {
         JfrBuffer result = ImageSingletons.lookup(UnmanagedMemorySupport.class).malloc(headerSize.add(dataSize));
         if (result.isNonNull()) {
             result.setSize(dataSize);
+            result.setNext(WordFactory.nullPointer());
             reinitialize(result);
         }
         return result;

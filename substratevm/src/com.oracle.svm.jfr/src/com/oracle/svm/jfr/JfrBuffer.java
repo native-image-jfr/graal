@@ -40,6 +40,12 @@ import com.oracle.svm.core.util.VMError;
 @RawStructure
 public interface JfrBuffer extends PointerBase {
     @RawField
+    JfrBuffer getNext();
+
+    @RawField
+    void setNext(JfrBuffer next);
+
+    @RawField
     UnsignedWord getSize();
 
     @RawField
