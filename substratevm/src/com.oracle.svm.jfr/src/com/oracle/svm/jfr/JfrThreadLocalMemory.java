@@ -29,9 +29,11 @@ package com.oracle.svm.jfr;
 import org.graalvm.word.WordFactory;
 
 import com.oracle.svm.core.annotate.Uninterruptible;
+import com.oracle.svm.core.locks.VMMutex;
 
 public class JfrThreadLocalMemory {
     private static JfrBuffer head;
+    private static final VMMutex mutex = new VMMutex();
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static JfrBuffer acquireThreadLocalBuffer(long bufferSize) {
@@ -43,41 +45,52 @@ public class JfrThreadLocalMemory {
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static boolean removeThreadLocalBuffer(JfrBuffer buffer) {
-        if (buffer.isNull()) {
-            return false;
-        }
+        mutex.lockNoTransition();
+        try {
+            if (buffer.isNull()) {
+                return false;
+            }
 
-        if (buffer.equal(head)) {
-            head = head.getNext();
-            JfrBufferAccess.free(buffer);
-            return true;
-        }
-        JfrBuffer prev = head;
-        JfrBuffer node = head.getNext();
-        while (node.isNonNull()) {
-            if (buffer.equal(node)) {
-                prev.setNext(node.getNext());
+            if (buffer.equal(head)) {
+                head = head.getNext();
                 JfrBufferAccess.free(buffer);
                 return true;
             }
-            prev = node;
-            node = node.getNext();
+            JfrBuffer prev = head;
+            JfrBuffer node = head.getNext();
+            while (node.isNonNull()) {
+                if (buffer.equal(node)) {
+                    prev.setNext(node.getNext());
+                    JfrBufferAccess.free(buffer);
+                    return true;
+                }
+                prev = node;
+                node = node.getNext();
+            }
+
+            return false;
+        } finally {
+            mutex.unlock();
         }
-        return false;
     }
 
     public static void writeThreadLocalBuffers(JfrChunkWriter writer) {
-        JfrBuffer node = head;
-        while (node.isNonNull()) {
-            if (!JfrBufferAccess.acquire(node)) {
-                // Thread local buffers are acquired when flushing to promotion buffer
-                // or when flushing to disk. If acquired already, someone else is
-                // handling the data for us
-                return;
+        mutex.lock();
+        try {
+            JfrBuffer node = head;
+            while (node.isNonNull()) {
+                if (!JfrBufferAccess.acquire(node)) {
+                    // Thread local buffers are acquired when flushing to promotion buffer
+                    // or when flushing to disk. If acquired already, someone else is
+                    // handling the data for us
+                    return;
+                }
+                writer.write(node);
+                JfrBufferAccess.release(node);
+                node = node.getNext();
             }
-            writer.write(node);
-            JfrBufferAccess.release(node);
-            node = node.getNext();
+        } finally {
+            mutex.unlock();
         }
     }
 }
