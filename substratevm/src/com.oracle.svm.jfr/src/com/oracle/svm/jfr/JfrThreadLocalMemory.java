@@ -31,9 +31,12 @@ import org.graalvm.word.WordFactory;
 import com.oracle.svm.core.annotate.Uninterruptible;
 import com.oracle.svm.core.locks.VMMutex;
 
-public class JfrThreadLocalMemory {
+public final class JfrThreadLocalMemory {
     private static JfrBuffer head;
     private static final VMMutex mutex = new VMMutex();
+
+    private JfrThreadLocalMemory() {
+    }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static JfrBuffer acquireThreadLocalBuffer(long bufferSize) {
