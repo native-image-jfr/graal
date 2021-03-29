@@ -30,6 +30,7 @@ import org.graalvm.word.WordFactory;
 
 import com.oracle.svm.core.annotate.Uninterruptible;
 import com.oracle.svm.core.locks.VMMutex;
+import com.oracle.svm.core.util.VMError;
 
 public final class JfrThreadLocalMemory {
     private static JfrBuffer head;
@@ -52,31 +53,32 @@ public final class JfrThreadLocalMemory {
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
-    public static boolean removeBuffer(JfrBuffer buffer) {
+    public static void removeBuffer(JfrBuffer buffer) {
+        if (buffer.isNull()) {
+            return;
+        }
+
         mutex.lockNoTransition();
         try {
-            if (buffer.isNull()) {
-                return false;
-            }
-
             if (buffer.equal(head)) {
                 head = head.getNext();
                 JfrBufferAccess.free(buffer);
-                return true;
+                return;
             }
             JfrBuffer prev = head;
             JfrBuffer node = head.getNext();
+
             while (node.isNonNull()) {
                 if (buffer.equal(node)) {
                     prev.setNext(node.getNext());
                     JfrBufferAccess.free(buffer);
-                    return true;
+                    return;
                 }
                 prev = node;
                 node = node.getNext();
             }
 
-            return false;
+            throw VMError.shouldNotReachHere("JFR Thread Local buffer is lost.");
         } finally {
             mutex.unlock();
         }
@@ -93,8 +95,11 @@ public final class JfrThreadLocalMemory {
                     // handling the data for us
                     return;
                 }
-                writer.write(node);
-                JfrBufferAccess.release(node);
+                try {
+                    writer.write(node);
+                } finally {
+                    JfrBufferAccess.release(node);
+                }
                 node = node.getNext();
             }
         } finally {
