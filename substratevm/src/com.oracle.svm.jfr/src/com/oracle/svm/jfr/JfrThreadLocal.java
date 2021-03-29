@@ -208,27 +208,30 @@ public class JfrThreadLocal implements ThreadListener {
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static JfrBuffer flush(JfrBuffer threadLocalBuffer, UnsignedWord uncommitted, int requested) {
         assert threadLocalBuffer.isNonNull();
-
-        if (!JfrBufferAccess.acquire(threadLocalBuffer)) {
-            // Thread local buffers are acquired when flushing to promotion buffer
-            // or when flushing to disk. If acquired already, someone else is
-            // handling the data for us
-            return threadLocalBuffer;
+        // TODO using acquired field is kind of a hack of the field knowing that
+        // it won't be used for thread local buffers elsewhere (yet?). Ideally
+        // there is similar synchronization in JfrBufferAccess to acquire top
+        boolean acquired = JfrBufferAccess.acquire(threadLocalBuffer);
+        while (!acquired) {
+            acquired = JfrBufferAccess.acquire(threadLocalBuffer);
         }
         try {
             JfrBuffer result = threadLocalBuffer;
             UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(threadLocalBuffer);
-            if (unflushedSize.aboveThan(0)) {
-                JfrGlobalMemory globalMemory = SubstrateJVM.getGlobalMemory();
-                if (globalMemory.write(threadLocalBuffer, unflushedSize)) {
-                    // Copy all uncommitted memory to the start of the thread local buffer.
-                    MemoryUtil.copyConjointMemoryAtomic(threadLocalBuffer.getPos(), JfrBufferAccess.getDataStart(threadLocalBuffer), uncommitted);
-                    JfrBufferAccess.reinitialize(threadLocalBuffer);
-                } else {
-                    JfrBufferAccess.reinitialize(threadLocalBuffer);
-                    writeDataLoss(threadLocalBuffer, unflushedSize);
-                    return WordFactory.nullPointer();
-                }
+            if (unflushedSize.equal(0)) {
+                JfrBufferAccess.reinitialize(threadLocalBuffer);
+                return threadLocalBuffer;
+            }
+
+            JfrGlobalMemory globalMemory = SubstrateJVM.getGlobalMemory();
+            if (globalMemory.write(threadLocalBuffer, unflushedSize)) {
+                // Copy all uncommitted memory to the start of the thread local buffer.
+                MemoryUtil.copyConjointMemoryAtomic(threadLocalBuffer.getPos(), JfrBufferAccess.getDataStart(threadLocalBuffer), uncommitted);
+                JfrBufferAccess.reinitialize(threadLocalBuffer);
+            } else {
+                JfrBufferAccess.reinitialize(threadLocalBuffer);
+                writeDataLoss(threadLocalBuffer, unflushedSize);
+                return WordFactory.nullPointer();
             }
 
             assert JfrBufferAccess.getUnflushedSize(threadLocalBuffer).equal(0);
