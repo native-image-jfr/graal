@@ -39,7 +39,7 @@ public final class JfrThreadLocalMemory {
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
-    public static JfrBuffer acquireThreadLocalBuffer(long bufferSize) {
+    public static JfrBuffer acquireBuffer(long bufferSize) {
         JfrBuffer node = JfrBufferAccess.allocate(WordFactory.unsigned(bufferSize));
         node.setNext(head);
         head = node;
@@ -47,7 +47,7 @@ public final class JfrThreadLocalMemory {
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
-    public static boolean removeThreadLocalBuffer(JfrBuffer buffer) {
+    public static boolean removeBuffer(JfrBuffer buffer) {
         mutex.lockNoTransition();
         try {
             if (buffer.isNull()) {
@@ -77,7 +77,7 @@ public final class JfrThreadLocalMemory {
         }
     }
 
-    public static void writeThreadLocalBuffers(JfrChunkWriter writer) {
+    public static void writeBuffers(JfrChunkWriter writer) {
         mutex.lock();
         try {
             JfrBuffer node = head;

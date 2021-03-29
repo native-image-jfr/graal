@@ -153,7 +153,7 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     // global JFR memory must also support different epochs.
     public void closeFile(byte[] metadataDescriptor, JfrRepository[] repositories) {
         assert lock.isHeldByCurrentThread();
-        JfrThreadLocalMemory.writeThreadLocalBuffers(this);
+        JfrThreadLocalMemory.writeBuffers(this);
         JfrCloseFileOperation op = new JfrCloseFileOperation(metadataDescriptor, repositories);
         op.enqueue();
     }

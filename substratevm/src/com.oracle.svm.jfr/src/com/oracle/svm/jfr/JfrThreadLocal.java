@@ -188,7 +188,7 @@ public class JfrThreadLocal implements ThreadListener {
         VMError.guarantee(traceId.get() > 0, "Thread local JFR data must be initialized");
         JfrBuffer result = javaBuffer.get();
         if (result.isNull()) {
-            result = JfrThreadLocalMemory.acquireThreadLocalBuffer(threadLocalBufferSize);
+            result = JfrThreadLocalMemory.acquireBuffer(threadLocalBufferSize);
             javaBuffer.set(result);
         }
         return result;
@@ -199,7 +199,7 @@ public class JfrThreadLocal implements ThreadListener {
         VMError.guarantee(traceId.get() > 0, "Thread local JFR data must be initialized");
         JfrBuffer result = nativeBuffer.get();
         if (result.isNull()) {
-            result = JfrThreadLocalMemory.acquireThreadLocalBuffer(threadLocalBufferSize);
+            result = JfrThreadLocalMemory.acquireBuffer(threadLocalBufferSize);
             nativeBuffer.set(result);
         }
         return result;
@@ -271,6 +271,6 @@ public class JfrThreadLocal implements ThreadListener {
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     private static void freeBuffer(JfrBuffer buffer) {
-        JfrThreadLocalMemory.removeThreadLocalBuffer(buffer);
+        JfrThreadLocalMemory.removeBuffer(buffer);
     }
 }
