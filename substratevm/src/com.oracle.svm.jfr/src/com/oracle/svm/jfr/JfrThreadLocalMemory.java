@@ -40,10 +40,15 @@ public final class JfrThreadLocalMemory {
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     public static JfrBuffer acquireBuffer(long bufferSize) {
-        JfrBuffer node = JfrBufferAccess.allocate(WordFactory.unsigned(bufferSize));
-        node.setNext(head);
-        head = node;
-        return node;
+        mutex.lockNoTransition();
+        try {
+            JfrBuffer node = JfrBufferAccess.allocate(WordFactory.unsigned(bufferSize));
+            node.setNext(head);
+            head = node;
+            return node;
+        } finally {
+            mutex.unlock();
+        }
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
