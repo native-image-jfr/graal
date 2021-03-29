@@ -129,6 +129,9 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
     public boolean write(JfrBuffer buffer) {
         assert lock.isHeldByCurrentThread();
         UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(buffer);
+        if (unflushedSize.equal(0)) {
+            return false;
+        }
         int capacity = NumUtil.safeToInt(unflushedSize.rawValue());
         Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(buffer.getTop().rawValue(), capacity);
         FileChannel fc = file.getChannel();

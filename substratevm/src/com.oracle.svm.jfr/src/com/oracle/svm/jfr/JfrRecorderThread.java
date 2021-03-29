@@ -102,7 +102,9 @@ public class JfrRecorderThread extends Thread {
                 JfrBufferAccess.release(buffer);
 
                 if (shouldNotify) {
-                    Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE.notify();
+                    synchronized (Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE) {
+                        Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE.notify();
+                    }
                 }
             }
         }

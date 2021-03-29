@@ -83,4 +83,10 @@ public interface JfrBuffer extends PointerBase {
     static int offsetOfAcquired() {
         throw VMError.unimplemented(); // replaced
     }
+
+    @RawField
+    boolean getRetired();
+
+    @RawField
+    void setRetired(boolean value);
 }

@@ -53,11 +53,7 @@ public final class JfrThreadLocalMemory {
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.")
-    public static void removeBuffer(JfrBuffer buffer) {
-        if (buffer.isNull()) {
-            return;
-        }
-
+    private static void removeBuffer(JfrBuffer buffer) {
         mutex.lockNoTransition();
         try {
             if (buffer.equal(head)) {
@@ -85,15 +81,14 @@ public final class JfrThreadLocalMemory {
     }
 
     public static void writeBuffers(JfrChunkWriter writer) {
-        mutex.lock();
-        try {
-            JfrBuffer node = head;
-            while (node.isNonNull()) {
+        JfrBuffer node = head;
+        while (node.isNonNull()) {
+            if (!node.getRetired()) {
                 if (!JfrBufferAccess.acquire(node)) {
                     // Thread local buffers are acquired when flushing to promotion buffer
                     // or when flushing to disk. If acquired already, someone else is
                     // handling the data for us
-                    return;
+                    continue;
                 }
                 try {
                     writer.write(node);
@@ -101,9 +96,17 @@ public final class JfrThreadLocalMemory {
                     JfrBufferAccess.release(node);
                 }
                 node = node.getNext();
+            } else {
+                // TODO Optimize this to remove while iterating for writes
+                // instead of the current second iteration in removeBuffer
+                assert !JfrBufferAccess.isAcquired(node);
+                // TODO Buffer should be flushed and reinitialized before marking as
+                // retired but this assert sometimes fails at the moment
+                assert JfrBufferAccess.getUnflushedSize(node).equal(0);
+                JfrBuffer toRemove = node;
+                node = node.getNext();
+                removeBuffer(toRemove);
             }
-        } finally {
-            mutex.unlock();
         }
     }
 }

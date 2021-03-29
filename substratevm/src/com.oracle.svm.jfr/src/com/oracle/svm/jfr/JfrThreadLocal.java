@@ -144,10 +144,10 @@ public class JfrThreadLocal implements ThreadListener {
         dataLost.set(isolateThread, WordFactory.unsigned(0));
         javaEventWriter.set(isolateThread, null);
 
-        freeBuffer(javaBuffer.get(isolateThread));
+        JfrBufferAccess.retireBuffer(javaBuffer.get(isolateThread));
         javaBuffer.set(isolateThread, WordFactory.nullPointer());
 
-        freeBuffer(nativeBuffer.get(isolateThread));
+        JfrBufferAccess.retireBuffer(nativeBuffer.get(isolateThread));
         nativeBuffer.set(isolateThread, WordFactory.nullPointer());
     }
 
@@ -267,10 +267,5 @@ public class JfrThreadLocal implements ThreadListener {
         UnsignedWord result = dataLost.get().add(delta);
         dataLost.set(result);
         return result;
-    }
-
-    @Uninterruptible(reason = "Accesses a JFR buffer.")
-    private static void freeBuffer(JfrBuffer buffer) {
-        JfrThreadLocalMemory.removeBuffer(buffer);
     }
 }
