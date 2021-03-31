@@ -55,7 +55,7 @@ public enum JfrLogConfiguration {
     public void parse(String config) {
         if (config.isBlank()) {
             return;
-        } else if (config.toUpperCase().equals("HELP")) {
+        } else if (config.equalsIgnoreCase("help")) {
             printHelp();
             System.exit(0);
         }
@@ -120,7 +120,7 @@ public enum JfrLogConfiguration {
                 str = str.substring(0, equalsIndex);
             }
 
-            if (str.toUpperCase().equals("ALL")) {
+            if (str.equalsIgnoreCase("all")) {
                 wildcard = true;
                 return;
             }
