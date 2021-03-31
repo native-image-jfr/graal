@@ -57,9 +57,9 @@ public enum JfrLogTagSet {
     private final Set<JfrLogTag> tags;
     private Optional<LogLevel> level; // Empty = do not log
 
-    JfrLogTagSet(int id, JfrLogTag... tags) {
+    JfrLogTagSet(int id, JfrLogTag firstTag, JfrLogTag... restTags) {
         this.id = id;
-        this.tags = EnumSet.copyOf(Arrays.asList(tags));
+        this.tags = EnumSet.of(firstTag, restTags);
     }
 
     static {
