@@ -51,8 +51,7 @@ public enum JfrLogTagSet {
     JFR_SETTING(9, JfrLogTag.JFR, JfrLogTag.SETTING),
     JFR_DCMD(10, JfrLogTag.JFR, JfrLogTag.DCMD);
 
-    private static final Map<Integer, JfrLogTagSet> IDMAP =
-        new HashMap<>((int) (JfrLogTagSet.values().length / 0.75) + 1);
+    private static final JfrLogTagSet[] IDMAP;
     private final int id; // Must match the id of the corresponding jdk.jfr.internal.LogTag
     private final Set<JfrLogTag> tags;
     private Optional<LogLevel> level; // Empty = do not log
@@ -63,13 +62,14 @@ public enum JfrLogTagSet {
     }
 
     static {
+        IDMAP = new JfrLogTagSet[JfrLogTagSet.values().length];
         for (JfrLogTagSet jfrLogTagSet : JfrLogTagSet.values()) {
-            IDMAP.put(jfrLogTagSet.id, jfrLogTagSet);
+            IDMAP[jfrLogTagSet.id] = jfrLogTagSet;
         }
     }
 
     public static JfrLogTagSet fromTagSetId(int tagSetId) {
-        return IDMAP.get(tagSetId);
+        return IDMAP[tagSetId];
     }
 
     public Set<JfrLogTag> getTags() {
