@@ -146,7 +146,6 @@ public enum JfrLogConfiguration {
     private void printHelp() {
         Log log = Log.log();
         log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
-        log.string("The syntax and behavior of this option is similar to that of the JDK's -Xlog option.").newline();
         log.string("When this option is not set, logging is disabled.").newline();
         log.string("When this option is set, logging will be enabled for messages with tag sets that match the given log combinations, at the specified levels.").newline();
         log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
