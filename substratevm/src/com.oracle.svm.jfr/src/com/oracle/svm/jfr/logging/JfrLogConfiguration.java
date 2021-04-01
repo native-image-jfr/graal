@@ -32,7 +32,6 @@ import jdk.jfr.internal.LogLevel;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -48,9 +47,9 @@ public enum JfrLogConfiguration {
         if (!loggingEnabled) {
             return false;
         }
-        Optional<LogLevel> tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
+        LogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
         // LogLevel#level is not accessible, so we have to use ordinal + 1
-        return tagSetLogLevel.isEmpty() ? false : tagSetLogLevel.get().ordinal() + 1 <= level;
+        return tagSetLogLevel == null ? false : tagSetLogLevel.ordinal() + 1 <= level;
     }
 
     public void parse(String config) {
@@ -78,11 +77,11 @@ public enum JfrLogConfiguration {
 
     private void setLogTagSetLevels() {
         for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
-            Optional<LogLevel> level = Optional.empty();
+            LogLevel level = null;
             for (JfrLogSelection selection : selections) {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
                         || (selection.tags.equals(tagSet.getTags()))) {
-                    level = Optional.of(selection.level);
+                    level = selection.level;
                     selection.matchesATagSet = true;
                 }
             }

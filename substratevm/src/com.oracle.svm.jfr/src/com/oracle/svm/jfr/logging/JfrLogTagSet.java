@@ -27,12 +27,8 @@ package com.oracle.svm.jfr.logging;
 
 import jdk.jfr.internal.LogLevel;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.EnumSet;
-import java.util.Optional;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * A JFR-related log tag set. This class is like {@link jdk.jfr.internal.LogTag}, but with added
@@ -54,7 +50,7 @@ public enum JfrLogTagSet {
     private static final JfrLogTagSet[] IDMAP;
     private final int id; // Must match the id of the corresponding jdk.jfr.internal.LogTag
     private final Set<JfrLogTag> tags;
-    private Optional<LogLevel> level; // Empty = do not log
+    private LogLevel level; // null = do not log
 
     JfrLogTagSet(int id, JfrLogTag firstTag, JfrLogTag... restTags) {
         this.id = id;
@@ -76,11 +72,11 @@ public enum JfrLogTagSet {
         return tags;
     }
 
-    public void setLevel(Optional<LogLevel> level) {
+    public void setLevel(LogLevel level) {
         this.level = level;
     }
 
-    public Optional<LogLevel> getLevel() {
+    public LogLevel getLevel() {
         return level;
     }
 }
