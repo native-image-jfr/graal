@@ -107,6 +107,7 @@ public enum JfrLogConfiguration {
         private boolean matchesATagSet = false;
 
         private void parse(String str) {
+            String tagsStr;
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
                 try {
@@ -117,20 +118,22 @@ public enum JfrLogConfiguration {
                         .newline();
                     System.exit(1);
                 }
-                str = str.substring(0, equalsIndex);
+                tagsStr = str.substring(0, equalsIndex);
+            } else {
+                tagsStr = str;
             }
 
-            if (str.equalsIgnoreCase("all")) {
+            if (tagsStr.equalsIgnoreCase("all")) {
                 wildcard = true;
                 return;
             }
 
-            if (str.endsWith("*")) {
+            if (tagsStr.endsWith("*")) {
                 wildcard = true;
-                str = str.substring(0, str.length() - 1);
+                tagsStr = tagsStr.substring(0, str.length() - 1);
             }
 
-            for (String s : str.split("\\+")) {
+            for (String s : tagsStr.split("\\+")) {
                 try {
                     tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
@@ -147,7 +150,7 @@ public enum JfrLogConfiguration {
         Log log = Log.log();
         log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
         log.string("When this option is not set, logging is disabled.").newline();
-        log.string("When this option is set, logging will be enabled for messages with tag sets that match the given log combinations, at the specified levels.").newline();
+        log.string("When this option is set, logging will be enabled for messages with tag sets that match the given tag combinations, at the specified levels.").newline();
         log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
         log.string("Unless wildcard (*) is specified, only log messages tagged with exactly the tags specified will be matched.").newline();
         log.string("Specifying 'all' instead of a tag combination matches all tag combinations.").newline();
