@@ -26,6 +26,7 @@
 package com.oracle.svm.jfr.logging;
 
 import com.oracle.svm.core.log.Log;
+import com.oracle.svm.core.util.UserError;
 
 import jdk.jfr.internal.LogLevel;
 
@@ -92,10 +93,8 @@ public enum JfrLogConfiguration {
     private void verifySelections() {
         for (JfrLogSelection selection : selections) {
             if (!selection.matchesATagSet) {
-                Log.log().string("error: No tag set matches tag combination ")
-                    .string(selection.tags.toString().toLowerCase()).string(selection.wildcard ? "*" : "")
-                    .string(" for FlightRecorderLogging").newline();
-                System.exit(1);
+                throw UserError.abort("No tag set matches tag combination %s for FlightRecorderLogging",
+                        selection.tags.toString().toLowerCase() + (selection.wildcard ? "*" : ""));
             }
         }
     }
@@ -113,10 +112,8 @@ public enum JfrLogConfiguration {
                 try {
                     level = LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    Log.log().string("error: Invalid log level '").string(str.substring(equalsIndex + 1))
-                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.")
-                        .newline();
-                    System.exit(1);
+                    throw UserError.abort(e, "Invalid log level '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.",
+                            str.substring(equalsIndex + 1));
                 }
                 tagsStr = str.substring(0, equalsIndex);
             } else {
@@ -137,10 +134,7 @@ public enum JfrLogConfiguration {
                 try {
                     tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    Log.log().string("error: Invalid log tag '").string(s)
-                        .string("' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.")
-                        .newline();
-                    System.exit(1);
+                    throw UserError.abort(e, "Invalid log tag '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.", s);
                 }
             }
         }
