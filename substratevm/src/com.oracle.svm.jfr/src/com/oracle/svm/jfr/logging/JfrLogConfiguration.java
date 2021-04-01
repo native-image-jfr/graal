@@ -67,9 +67,7 @@ public enum JfrLogConfiguration {
 
         int index = 0;
         for (String s : splitConfig) {
-            JfrLogSelection selection = new JfrLogSelection();
-            selection.parse(s);
-            selections[index++] = selection;
+            selections[index++] = JfrLogSelection.parse(s);
         }
         setLogTagSetLevels();
         verifySelections();
@@ -98,13 +96,23 @@ public enum JfrLogConfiguration {
         }
     }
 
-    private class JfrLogSelection {
-        private Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
-        private LogLevel level = LogLevel.INFO;
-        private boolean wildcard = false;
+    private static class JfrLogSelection {
+        private final Set<JfrLogTag> tags;
+        private final LogLevel level;
+        private final boolean wildcard;
         private boolean matchesATagSet = false;
 
-        private void parse(String str) {
+        JfrLogSelection(Set<JfrLogTag> tags, LogLevel level, boolean wildcard) {
+            this.tags = tags;
+            this.level = level;
+            this.wildcard = wildcard;
+        }
+
+        private static JfrLogSelection parse(String str) {
+            Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
+            LogLevel level = LogLevel.INFO;
+            boolean wildcard = false;
+
             String tagsStr;
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
@@ -120,13 +128,12 @@ public enum JfrLogConfiguration {
             }
 
             if (tagsStr.equalsIgnoreCase("all")) {
-                wildcard = true;
-                return;
+                return new JfrLogSelection(tags, level, true);
             }
 
             if (tagsStr.endsWith("*")) {
                 wildcard = true;
-                tagsStr = tagsStr.substring(0, str.length() - 1);
+                tagsStr = tagsStr.substring(0, tagsStr.length() - 1);
             }
 
             for (String s : tagsStr.split("\\+")) {
@@ -136,6 +143,7 @@ public enum JfrLogConfiguration {
                     throw UserError.abort(e, "Invalid log tag '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.", s);
                 }
             }
+            return new JfrLogSelection(tags, level, wildcard);
         }
     }
 
