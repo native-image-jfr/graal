@@ -441,7 +441,11 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
                 JfrBufferAccess.release(buffer);
 
                 if (shouldNotify) {
-                    Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE.notify();
+                    //Checkstyle: stop
+                    synchronized (Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE) {
+                        Target_jdk_jfr_internal_JVM.FILE_DELTA_CHANGE.notifyAll();
+                    }
+                    //Checkstyle: resume
                 }
             }
         }
