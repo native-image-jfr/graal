@@ -135,11 +135,16 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
 
     public boolean write(JfrBuffer buffer) {
         assert lock.isHeldByCurrentThread()  || VMOperationControl.isDedicatedVMOperationThread() && lock.isLocked();
-        int capacity = NumUtil.safeToInt(JfrBufferAccess.getUnflushedSize(buffer).rawValue());
-        Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(JfrBufferAccess.getDataStart(buffer).rawValue(), capacity);
+        UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(buffer);
+        if (unflushedSize.equal(0)) {
+            return false;
+        }
+        int capacity = NumUtil.safeToInt(unflushedSize.rawValue());
+        Target_java_nio_DirectByteBuffer bb = new Target_java_nio_DirectByteBuffer(buffer.getTop().rawValue(), capacity);
         FileChannel fc = file.getChannel();
         try {
             fc.write(SubstrateUtil.cast(bb, ByteBuffer.class));
+            JfrBufferAccess.increaseTop(buffer, unflushedSize);
             return file.getFilePointer() > notificationThreshold;
         } catch (IOException e) {
             Logger.log(JFR_SYSTEM, ERROR, "Error while writing file " + filename + ": " + e.getMessage());
