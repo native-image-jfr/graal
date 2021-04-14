@@ -28,8 +28,6 @@ package com.oracle.svm.jfr.logging;
 import com.oracle.svm.core.log.Log;
 import com.oracle.svm.core.util.UserError;
 
-import jdk.jfr.internal.LogLevel;
-
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
@@ -47,9 +45,8 @@ public enum JfrLogConfiguration {
         if (!loggingEnabled) {
             return false;
         }
-        LogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
-        // LogLevel#level is not accessible, so we have to use ordinal + 1
-        return tagSetLogLevel == null ? false : tagSetLogLevel.ordinal() + 1 <= level;
+        Target_jdk_jfr_internal_LogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
+        return tagSetLogLevel == null ? false : tagSetLogLevel.level <= level;
     }
 
     public void parse(String config) {
@@ -75,7 +72,7 @@ public enum JfrLogConfiguration {
 
     private void setLogTagSetLevels() {
         for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
-            LogLevel level = null;
+            Target_jdk_jfr_internal_LogLevel level = null;
             for (JfrLogSelection selection : selections) {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
                         || (selection.tags.equals(tagSet.getTags()))) {
@@ -98,11 +95,11 @@ public enum JfrLogConfiguration {
 
     private static class JfrLogSelection {
         private final Set<JfrLogTag> tags;
-        private final LogLevel level;
+        private final Target_jdk_jfr_internal_LogLevel level;
         private final boolean wildcard;
         private boolean matchesATagSet = false;
 
-        JfrLogSelection(Set<JfrLogTag> tags, LogLevel level, boolean wildcard) {
+        JfrLogSelection(Set<JfrLogTag> tags, Target_jdk_jfr_internal_LogLevel level, boolean wildcard) {
             this.tags = tags;
             this.level = level;
             this.wildcard = wildcard;
@@ -110,14 +107,14 @@ public enum JfrLogConfiguration {
 
         private static JfrLogSelection parse(String str) {
             Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
-            LogLevel level = LogLevel.INFO;
+            Target_jdk_jfr_internal_LogLevel level = Target_jdk_jfr_internal_LogLevel.INFO;
             boolean wildcard = false;
 
             String tagsStr;
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
                 try {
-                    level = LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
+                    level = Target_jdk_jfr_internal_LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
                     throw UserError.abort(e, "Invalid log level '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.",
                             str.substring(equalsIndex + 1));
@@ -158,7 +155,7 @@ public enum JfrLogConfiguration {
         log.string("A tag combination without a log level is given a default log level of INFO.").newline();
         log.string("If more than one tag combination applies to the same tag set, the rightmost one will be used.").newline();
         log.string("This option is case insensitive.").newline();
-        log.string("Available log levels:").newline().string(Arrays.toString(LogLevel.values()).toLowerCase()).newline();
+        log.string("Available log levels:").newline().string(Arrays.toString(Target_jdk_jfr_internal_LogLevel.values()).toLowerCase()).newline();
         log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTag.values()).toLowerCase()).newline();
     }
 }

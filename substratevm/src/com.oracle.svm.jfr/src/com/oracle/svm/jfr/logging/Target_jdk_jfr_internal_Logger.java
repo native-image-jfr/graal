@@ -23,7 +23,9 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.oracle.svm.jfr;
+package com.oracle.svm.jfr.logging;
+
+import com.oracle.svm.jfr.JfrEnabled;
 
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
@@ -33,7 +35,7 @@ import jdk.jfr.internal.LogLevel;
 import jdk.jfr.internal.Logger;
 
 @TargetClass(value = jdk.jfr.internal.Logger.class, onlyWith = JfrEnabled.class)
-public final class Target_jdk_jfr_internal_Logger {
+final class Target_jdk_jfr_internal_Logger {
     /** See {@link Logger#shouldLog}. */
     @SuppressWarnings({"unused"})
     @Substitute
