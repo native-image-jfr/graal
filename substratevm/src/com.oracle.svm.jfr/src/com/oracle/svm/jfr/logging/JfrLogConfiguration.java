@@ -52,11 +52,7 @@ public enum JfrLogConfiguration {
     public void parse(String config) {
         if (config.isBlank()) {
             return;
-        } else if (config.equalsIgnoreCase("help")) {
-            printHelp();
-            System.exit(0);
         }
-
         loggingEnabled = true;
 
         String[] splitConfig = config.split(",");
@@ -116,7 +112,7 @@ public enum JfrLogConfiguration {
                 try {
                     level = Target_jdk_jfr_internal_LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    throw UserError.abort(e, "Invalid log level '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.",
+                    throw UserError.abort(e, "Invalid log level '%s' for FlightRecorderLogging.",
                             str.substring(equalsIndex + 1));
                 }
                 tagsStr = str.substring(0, equalsIndex);
@@ -137,25 +133,10 @@ public enum JfrLogConfiguration {
                 try {
                     tags.add(JfrLogTag.valueOf(s.toUpperCase()));
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    throw UserError.abort(e, "Invalid log tag '%s' for FlightRecorderLogging. Use -XX:FlightRecorderLogging=help to see help.", s);
+                    throw UserError.abort(e, "Invalid log tag '%s' for FlightRecorderLogging.", s);
                 }
             }
             return new JfrLogSelection(tags, level, wildcard);
         }
-    }
-
-    private void printHelp() {
-        Log log = Log.log();
-        log.string("Usage: -XX:FlightRecorderLogging=[tag1[+tag2...][*][=level][,...]]").newline();
-        log.string("When this option is not set, logging is disabled.").newline();
-        log.string("When this option is set, logging will be enabled for messages with tag sets that match the given tag combinations, at the specified levels.").newline();
-        log.string("If a tag set does not have a matching tag combination from this option, then logging for that tag set is disabled.").newline();
-        log.string("Unless wildcard (*) is specified, only log messages tagged with exactly the tags specified will be matched.").newline();
-        log.string("Specifying 'all' instead of a tag combination matches all tag combinations.").newline();
-        log.string("A tag combination without a log level is given a default log level of INFO.").newline();
-        log.string("If more than one tag combination applies to the same tag set, the rightmost one will be used.").newline();
-        log.string("This option is case insensitive.").newline();
-        log.string("Available log levels:").newline().string(Arrays.toString(Target_jdk_jfr_internal_LogLevel.values()).toLowerCase()).newline();
-        log.string("Available log tags:").newline().string(Arrays.toString(JfrLogTag.values()).toLowerCase()).newline();
     }
 }

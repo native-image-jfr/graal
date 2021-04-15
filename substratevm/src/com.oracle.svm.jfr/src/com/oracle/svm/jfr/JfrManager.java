@@ -243,7 +243,7 @@ public class JfrManager {
         @Option(help = "Start flight recording with options.")//
         public static final RuntimeOptionKey<String> StartFlightRecording = new RuntimeOptionKey<>("");
 
-        @Option(help = "Set flight recorder logging options. Use -XX:FlightRecorderLogging=help to see help.")//
+        @Option(help = "file:doc-files/FlightRecorderLoggingHelp.txt")//
         public static final RuntimeOptionKey<String> FlightRecorderLogging = new RuntimeOptionKey<>("");
     }
 
