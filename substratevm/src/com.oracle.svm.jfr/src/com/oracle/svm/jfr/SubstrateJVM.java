@@ -34,17 +34,14 @@ import org.graalvm.word.Pointer;
 import org.graalvm.word.WordFactory;
 
 import com.oracle.svm.core.annotate.Uninterruptible;
-import com.oracle.svm.core.log.Log;
 import com.oracle.svm.core.thread.JavaVMOperation;
 import com.oracle.svm.core.thread.ThreadListener;
 import com.oracle.svm.core.util.VMError;
-import com.oracle.svm.jfr.logging.JfrLogConfiguration;
-import com.oracle.svm.jfr.logging.JfrLogTagSet;
+import com.oracle.svm.jfr.logging.JfrLogging;
 
+import jdk.jfr.internal.LogTag;
 import jdk.jfr.internal.EventWriter;
 import jdk.jfr.internal.JVM;
-import jdk.jfr.internal.LogLevel;
-import jdk.jfr.internal.LogTag;
 
 class SubstrateJVM {
     private final JfrOptionSet options;
@@ -61,14 +58,13 @@ class SubstrateJVM {
     private final JfrUnlockedChunkWriter unlockedChunkWriter;
     private final JfrRecorderThread recorderThread;
 
+    private final JfrLogging jfrLogging;
+
     private boolean initialized;
     // We can't reuse the field JVM.recording because it does not get set in all the cases that we
     // are interested in.
     private volatile boolean recording;
     private byte[] metadataDescriptor;
-
-    private int logLevelFill = 0;
-    private int logTagSetFill = 0;
 
     @Platforms(Platform.HOSTED_ONLY.class)
     SubstrateJVM() {
@@ -94,6 +90,8 @@ class SubstrateJVM {
         globalMemory = new JfrGlobalMemory();
         unlockedChunkWriter = new JfrChunkWriter();
         recorderThread = new JfrRecorderThread(globalMemory, unlockedChunkWriter);
+
+        jfrLogging = new JfrLogging();
 
         initialized = false;
         recording = false;
@@ -133,6 +131,11 @@ class SubstrateJVM {
     @Fold
     public static JfrMethodRepository getMethodRepository() {
         return get().methodRepo;
+    }
+
+    @Fold
+    public static JfrLogging getJfrLogging() {
+        return get().jfrLogging;
     }
 
     public static boolean isInitialized() {
@@ -387,43 +390,12 @@ class SubstrateJVM {
 
     /** See {@link JVM#log}. */
     public void log(int tagSetId, int level, String message) {
-        if (JfrLogConfiguration.INSTANCE.shouldLog(tagSetId, level)) {
-            Log log = Log.log();
-            logDecorations(log, tagSetId, level);
-            log.spaces(1).string(message).newline();
-        }
+        jfrLogging.log(tagSetId, level, message);
     }
 
     /** See {@link JVM#subscribeLogLevel}. */
     public void subscribeLogLevel(LogTag lt, int tagSetId) {
         // TODO: implement
-    }
-
-    private void logDecorations(Log log, int tagSetId, int level) {
-        String logLevelStr = getLogLevel(level).toString().toLowerCase();
-        String logTagSetStr = getLogTagSet(tagSetId).getTags().toString().toLowerCase().replaceAll("\\s", "");
-        logTagSetStr = logTagSetStr.substring(1, logTagSetStr.length() - 1);
-
-        if (logLevelStr.length() > logLevelFill) {
-            logLevelFill = logLevelStr.length();
-        }
-        if (logTagSetStr.length() > logTagSetFill) {
-            logTagSetFill = logTagSetStr.length();
-        }
-
-        log.character('[');
-        log.string(logLevelStr, logLevelFill, Log.LEFT_ALIGN);
-        log.string("][");
-        log.string(logTagSetStr, logTagSetFill, Log.LEFT_ALIGN);
-        log.character(']');
-    }
-
-    private static LogLevel getLogLevel(int level) {
-        return LogLevel.values()[level - 1];
-    }
-
-    private static JfrLogTagSet getLogTagSet(int tagSetId) {
-        return JfrLogTagSet.fromTagSetId(tagSetId);
     }
 
     /** See {@link JVM#getEventWriter}. */

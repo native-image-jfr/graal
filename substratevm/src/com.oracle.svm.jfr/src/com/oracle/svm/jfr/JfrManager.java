@@ -45,7 +45,6 @@ import com.oracle.svm.jfr.events.JVMInformation;
 import com.oracle.svm.jfr.events.JavaThreadStatistics;
 import com.oracle.svm.jfr.events.OSInformation;
 import com.oracle.svm.jfr.events.PhysicalMemory;
-import com.oracle.svm.jfr.logging.JfrLogConfiguration;
 
 import jdk.jfr.FlightRecorder;
 import jdk.jfr.internal.LogLevel;
@@ -84,7 +83,7 @@ public class JfrManager {
     }
 
     private static void parseFlightRecorderLogging(String option) {
-        JfrLogConfiguration.INSTANCE.parse(option);
+        SubstrateJVM.getJfrLogging().parseConfiguration(option);
     }
 
     private static void periodicEventSetup() throws SecurityException {

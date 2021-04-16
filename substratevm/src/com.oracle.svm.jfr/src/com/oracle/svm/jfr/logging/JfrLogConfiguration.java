@@ -25,23 +25,26 @@
  */
 package com.oracle.svm.jfr.logging;
 
-import com.oracle.svm.core.log.Log;
 import com.oracle.svm.core.util.UserError;
 
-import java.util.Arrays;
+import org.graalvm.nativeimage.Platform;
+import org.graalvm.nativeimage.Platforms;
+
 import java.util.EnumSet;
 import java.util.Set;
 
 /**
  * Handles configuration for flight recorder logging.
  */
-public enum JfrLogConfiguration {
-    INSTANCE;
-
+class JfrLogConfiguration {
     private boolean loggingEnabled = false;
     private JfrLogSelection[] selections;
 
-    public boolean shouldLog(int tagSetId, int level) {
+    @Platforms(Platform.HOSTED_ONLY.class)
+    JfrLogConfiguration() {
+    }
+
+    boolean shouldLog(int tagSetId, int level) {
         if (!loggingEnabled) {
             return false;
         }
@@ -49,7 +52,7 @@ public enum JfrLogConfiguration {
         return tagSetLogLevel == null ? false : tagSetLogLevel.level <= level;
     }
 
-    public void parse(String config) {
+    void parse(String config) {
         if (config.isBlank()) {
             return;
         }
@@ -74,7 +77,7 @@ public enum JfrLogConfiguration {
                         || (selection.tags.equals(tagSet.getTags()))) {
                     level = selection.level;
                     selection.matchesATagSet = true;
-                }
+                        }
             }
             tagSet.setLevel(level);
         }
