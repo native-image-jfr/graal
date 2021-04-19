@@ -37,6 +37,8 @@ import java.util.Set;
  * Handles configuration for flight recorder logging.
  */
 class JfrLogConfiguration {
+    private static final String EMPTY_STRING_DEFAULT_CONFIG = "all=info";
+
     private boolean loggingEnabled = false;
     private JfrLogSelection[] selections;
 
@@ -52,11 +54,18 @@ class JfrLogConfiguration {
         return tagSetLogLevel == null ? false : tagSetLogLevel.level <= level;
     }
 
-    void parse(String config) {
-        if (config.isBlank()) {
+    void parse(String str) {
+        if (str.equalsIgnoreCase("disable")) {
             return;
         }
+
         loggingEnabled = true;
+        String config;
+        if (str.isEmpty()) {
+            config = EMPTY_STRING_DEFAULT_CONFIG;
+        } else {
+            config = str;
+        }
 
         String[] splitConfig = config.split(",");
         selections = new JfrLogSelection[splitConfig.length];

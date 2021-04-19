@@ -243,7 +243,7 @@ public class JfrManager {
         public static final RuntimeOptionKey<String> StartFlightRecording = new RuntimeOptionKey<>("");
 
         @Option(help = "file:doc-files/FlightRecorderLoggingHelp.txt")//
-        public static final RuntimeOptionKey<String> FlightRecorderLogging = new RuntimeOptionKey<>("");
+        public static final RuntimeOptionKey<String> FlightRecorderLogging = new RuntimeOptionKey<>("all=warning");
     }
 
     private enum JfrStartArgument {
