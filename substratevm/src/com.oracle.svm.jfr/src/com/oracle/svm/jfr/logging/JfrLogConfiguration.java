@@ -71,7 +71,7 @@ class JfrLogConfiguration {
 
     private void setLogTagSetLevels() {
         for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
-            Target_jdk_jfr_internal_LogLevel level = null;
+            Target_jdk_jfr_internal_LogLevel level = Target_jdk_jfr_internal_LogLevel.WARN;
             for (JfrLogSelection selection : selections) {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
                         || (selection.tags.equals(tagSet.getTags()))) {
