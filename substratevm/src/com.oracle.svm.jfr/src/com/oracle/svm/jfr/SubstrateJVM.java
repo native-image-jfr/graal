@@ -219,6 +219,7 @@ class SubstrateJVM {
 
     /** See {@link JVM#beginRecording}. */
     public void beginRecording() {
+        jdk.jfr.internal.Logger.log(jdk.jfr.internal.LogTag.JFR, jdk.jfr.internal.LogLevel.WARN, "TEST WARN");
         assert !recording;
 
         JfrChunkWriter chunkWriter = unlockedChunkWriter.lock();

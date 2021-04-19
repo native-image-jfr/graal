@@ -25,21 +25,21 @@
  */
 package com.oracle.svm.jfr.logging;
 
-import com.oracle.svm.core.annotate.Alias;
-import com.oracle.svm.core.annotate.TargetClass;
+/**
+ * This class is like {@link jdk.jfr.internal.LogLevel}, but with some differences that are needed
+ * to work with this logging system.
+ */
+enum JfrLogLevel {
+    TRACE(1),
+    DEBUG(2),
+    INFO(3),
+    WARNING(4),
+    ERROR(5),
+    OFF(6);
 
-@TargetClass(value = jdk.jfr.internal.LogLevel.class, onlyWith = com.oracle.svm.jfr.JfrEnabled.class)
-final class Target_jdk_jfr_internal_LogLevel {
-    @Alias static Target_jdk_jfr_internal_LogLevel TRACE;
-    @Alias static Target_jdk_jfr_internal_LogLevel DEBUG;
-    @Alias static Target_jdk_jfr_internal_LogLevel INFO;
-    @Alias static Target_jdk_jfr_internal_LogLevel WARN;
-    @Alias static Target_jdk_jfr_internal_LogLevel ERROR;
-    @Alias int level;
+    final int level;
 
-    @Alias
-    static native Target_jdk_jfr_internal_LogLevel[] values();
-
-    @Alias
-    static native Target_jdk_jfr_internal_LogLevel valueOf(String name);
+    JfrLogLevel(int level) {
+        this.level = level;
+    }
 }

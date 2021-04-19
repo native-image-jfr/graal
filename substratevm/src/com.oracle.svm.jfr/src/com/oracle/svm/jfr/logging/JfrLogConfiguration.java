@@ -48,7 +48,7 @@ class JfrLogConfiguration {
         if (!loggingEnabled) {
             return false;
         }
-        Target_jdk_jfr_internal_LogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
+        JfrLogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
         return tagSetLogLevel == null ? false : tagSetLogLevel.level <= level;
     }
 
@@ -71,7 +71,7 @@ class JfrLogConfiguration {
 
     private void setLogTagSetLevels() {
         for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
-            Target_jdk_jfr_internal_LogLevel level = Target_jdk_jfr_internal_LogLevel.WARN;
+            JfrLogLevel level = JfrLogLevel.WARNING;
             for (JfrLogSelection selection : selections) {
                 if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
                         || (selection.tags.equals(tagSet.getTags()))) {
@@ -94,11 +94,11 @@ class JfrLogConfiguration {
 
     private static class JfrLogSelection {
         private final Set<JfrLogTag> tags;
-        private final Target_jdk_jfr_internal_LogLevel level;
+        private final JfrLogLevel level;
         private final boolean wildcard;
         private boolean matchesATagSet = false;
 
-        JfrLogSelection(Set<JfrLogTag> tags, Target_jdk_jfr_internal_LogLevel level, boolean wildcard) {
+        JfrLogSelection(Set<JfrLogTag> tags, JfrLogLevel level, boolean wildcard) {
             this.tags = tags;
             this.level = level;
             this.wildcard = wildcard;
@@ -106,14 +106,14 @@ class JfrLogConfiguration {
 
         private static JfrLogSelection parse(String str) {
             Set<JfrLogTag> tags = EnumSet.noneOf(JfrLogTag.class);
-            Target_jdk_jfr_internal_LogLevel level = Target_jdk_jfr_internal_LogLevel.INFO;
+            JfrLogLevel level = JfrLogLevel.INFO;
             boolean wildcard = false;
 
             String tagsStr;
             int equalsIndex;
             if ((equalsIndex = str.indexOf('=')) > 0) {
                 try {
-                    level = Target_jdk_jfr_internal_LogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
+                    level = JfrLogLevel.valueOf(str.substring(equalsIndex + 1).toUpperCase());
                 } catch (IllegalArgumentException | NullPointerException e) {
                     throw UserError.abort(e, "Invalid log level '%s' for FlightRecorderLogging.",
                             str.substring(equalsIndex + 1));

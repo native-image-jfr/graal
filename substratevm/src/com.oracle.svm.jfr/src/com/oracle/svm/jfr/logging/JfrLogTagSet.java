@@ -48,7 +48,7 @@ public enum JfrLogTagSet {
     private static final JfrLogTagSet[] IDMAP;
     private final int id; // Must match the id of the corresponding jdk.jfr.internal.LogTag
     private final Set<JfrLogTag> tags;
-    private Target_jdk_jfr_internal_LogLevel level; // null = do not log
+    private JfrLogLevel level;
 
     JfrLogTagSet(int id, JfrLogTag firstTag, JfrLogTag... restTags) {
         this.id = id;
@@ -70,11 +70,11 @@ public enum JfrLogTagSet {
         return tags;
     }
 
-    public void setLevel(Target_jdk_jfr_internal_LogLevel level) {
+    public void setLevel(JfrLogLevel level) {
         this.level = level;
     }
 
-    public Target_jdk_jfr_internal_LogLevel getLevel() {
+    public JfrLogLevel getLevel() {
         return level;
     }
 }
