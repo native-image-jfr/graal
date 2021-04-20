@@ -27,19 +27,28 @@ package com.oracle.svm.jfr.logging;
 
 import com.oracle.svm.jfr.JfrEnabled;
 
-import com.oracle.svm.core.annotate.Substitute;
+import com.oracle.svm.core.annotate.Alias;
 import com.oracle.svm.core.annotate.TargetClass;
 
-import jdk.jfr.internal.LogTag;
-import jdk.jfr.internal.LogLevel;
-import jdk.jfr.internal.Logger;
+@TargetClass(value = jdk.jfr.internal.LogTag.class, onlyWith = JfrEnabled.class)
+final class Target_jdk_jfr_internal_LogTag {
+    //Checkstyle: stop field name check
+    @Alias static Target_jdk_jfr_internal_LogTag JFR;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM_EVENT;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM_SETTING;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM_BYTECODE;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM_PARSER;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SYSTEM_METADATA;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_METADATA;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_EVENT;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_SETTING;
+    @Alias static Target_jdk_jfr_internal_LogTag JFR_DCMD;
+    //Checkstyle: resume field name check
 
-@TargetClass(value = jdk.jfr.internal.Logger.class, onlyWith = JfrEnabled.class)
-final class Target_jdk_jfr_internal_Logger {
-    /** See {@link Logger#shouldLog}. */
-    @SuppressWarnings({"unused"})
-    @Substitute
-    public static boolean shouldLog(LogTag tag, LogLevel level) {
-        return true;
-    }
+    @Alias volatile int tagSetLevel;
+    @Alias int id;
+
+    @Alias
+    static native Target_jdk_jfr_internal_LogTag[] values();
 }

@@ -30,6 +30,10 @@ import com.oracle.svm.core.util.UserError;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 
+import jdk.jfr.internal.LogTag;
+
+import java.util.Map;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -38,28 +42,43 @@ import java.util.Set;
  */
 class JfrLogConfiguration {
     private static final String EMPTY_STRING_DEFAULT_CONFIG = "all=info";
+    private static final Map<LogTag, Set<JfrLogTag>> tagSetTags = new EnumMap<LogTag, Set<JfrLogTag>>(LogTag.class);
 
-    private boolean loggingEnabled = false;
     private JfrLogSelection[] selections;
+
+    static {
+        tagSetTags.put(LogTag.JFR, EnumSet.of(JfrLogTag.JFR));
+        tagSetTags.put(LogTag.JFR_SYSTEM, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.EVENT));
+        tagSetTags.put(LogTag.JFR_SYSTEM_EVENT, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.SETTING));
+        tagSetTags.put(LogTag.JFR_SYSTEM_SETTING, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.SETTING));
+        tagSetTags.put(LogTag.JFR_SYSTEM_BYTECODE, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.BYTECODE));
+        tagSetTags.put(LogTag.JFR_SYSTEM_PARSER, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.PARSER));
+        tagSetTags.put(LogTag.JFR_SYSTEM_METADATA, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SYSTEM, JfrLogTag.METADATA));
+        tagSetTags.put(LogTag.JFR_METADATA, EnumSet.of(JfrLogTag.JFR, JfrLogTag.METADATA));
+        tagSetTags.put(LogTag.JFR_EVENT, EnumSet.of(JfrLogTag.JFR, JfrLogTag.EVENT));
+        tagSetTags.put(LogTag.JFR_SETTING, EnumSet.of(JfrLogTag.JFR, JfrLogTag.SETTING));
+        tagSetTags.put(LogTag.JFR_DCMD, EnumSet.of(JfrLogTag.JFR, JfrLogTag.DCMD));
+    }
 
     @Platforms(Platform.HOSTED_ONLY.class)
     JfrLogConfiguration() {
     }
 
-    boolean shouldLog(int tagSetId, int level) {
-        if (!loggingEnabled) {
-            return false;
-        }
-        JfrLogLevel tagSetLogLevel = JfrLogTagSet.fromTagSetId(tagSetId).getLevel();
-        return tagSetLogLevel == null ? false : tagSetLogLevel.level <= level;
+    static Map<LogTag, Set<JfrLogTag>> getTagSetTags() {
+        return tagSetTags;
     }
 
     void parse(String str) {
+        // See LogTag#tagSetLevel.
+        // Should initially be set to 100, but is automatically set to 4 during image build time.
+        for (Target_jdk_jfr_internal_LogTag tagSet : Target_jdk_jfr_internal_LogTag.values()) {
+            tagSet.tagSetLevel = 100;
+        }
+
         if (str.equalsIgnoreCase("disable")) {
             return;
         }
 
-        loggingEnabled = true;
         String config;
         if (str.isEmpty()) {
             config = EMPTY_STRING_DEFAULT_CONFIG;
@@ -79,16 +98,16 @@ class JfrLogConfiguration {
     }
 
     private void setLogTagSetLevels() {
-        for (JfrLogTagSet tagSet : JfrLogTagSet.values()) {
-            JfrLogLevel level = JfrLogLevel.WARNING;
+        for (LogTag tagSet : LogTag.values()) {
+            JfrLogLevel jfrLogLevel = JfrLogLevel.WARNING;
             for (JfrLogSelection selection : selections) {
-                if ((selection.wildcard && tagSet.getTags().containsAll(selection.tags))
-                        || (selection.tags.equals(tagSet.getTags()))) {
-                    level = selection.level;
+                if ((selection.wildcard && tagSetTags.get(tagSet).containsAll(selection.tags))
+                        || (selection.tags.equals(tagSetTags.get(tagSet)))) {
+                    jfrLogLevel = selection.level;
                     selection.matchesATagSet = true;
                         }
             }
-            tagSet.setLevel(level);
+            Target_jdk_jfr_internal_LogTag.values()[tagSet.ordinal()].tagSetLevel = jfrLogLevel.level;
         }
     }
 

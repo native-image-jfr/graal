@@ -30,12 +30,13 @@ import com.oracle.svm.core.log.Log;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 
-import jdk.jfr.internal.LogLevel;
+import java.util.NoSuchElementException;
 
 public class JfrLogging {
     private final JfrLogConfiguration configuration;
     private int levelDecorationFill = 0;
     private int tagSetDecorationFill = 0;
+
 
     @Platforms(Platform.HOSTED_ONLY.class)
     public JfrLogging() {
@@ -47,16 +48,15 @@ public class JfrLogging {
     }
 
     public void log(int tagSetId, int level, String message) {
-        if (configuration.shouldLog(tagSetId, level)) {
-            Log log = Log.log();
-            logDecorations(log, tagSetId, level);
-            log.spaces(1).string(message).newline();
-        }
+        Log log = Log.log();
+        logDecorations(log, tagSetId, level);
+        log.spaces(1).string(message).newline();
     }
 
     private void logDecorations(Log log, int tagSetId, int level) {
         String levelDecoration = getLogLevel(level).toString().toLowerCase();
-        String tagSetDecoration = getLogTagSet(tagSetId).getTags().toString().toLowerCase().replaceAll("\\s", "");
+        String tagSetDecoration = JfrLogConfiguration.getTagSetTags().get(getLogTagSet(tagSetId))
+            .toString().toLowerCase().replaceAll("\\s", "");
         tagSetDecoration = tagSetDecoration.substring(1, tagSetDecoration.length() - 1);
 
         if (levelDecoration.length() > levelDecorationFill) {
@@ -73,12 +73,22 @@ public class JfrLogging {
         log.character(']');
     }
 
-    private static LogLevel getLogLevel(int level) {
-        return LogLevel.values()[level - 1];
+    private static JfrLogLevel getLogLevel(int level) {
+        for (JfrLogLevel jfrLogLevel : JfrLogLevel.values()) {
+            if (jfrLogLevel.level == level) {
+                return jfrLogLevel;
+            }
+        }
+        throw new NoSuchElementException();
     }
 
-    private static JfrLogTagSet getLogTagSet(int tagSetId) {
-        return JfrLogTagSet.fromTagSetId(tagSetId);
+    private static Target_jdk_jfr_internal_LogTag getLogTagSet(int tagSetId) {
+        for (Target_jdk_jfr_internal_LogTag tagSet : Target_jdk_jfr_internal_LogTag.values()) {
+            if (tagSet.id == tagSetId) {
+                return tagSet;
+            }
+        }
+        throw new NoSuchElementException();
     }
 
 }
