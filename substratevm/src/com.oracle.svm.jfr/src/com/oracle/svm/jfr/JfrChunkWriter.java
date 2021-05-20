@@ -371,7 +371,7 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         protected JfrCloseFileOperation() {
             // Some of the JDK code that deals with files uses Java synchronization. So, we need to
             // allow Java synchronization for this VM operation.
-            super("JFR close file", SystemEffect.SAFEPOINT, true);
+            super("JFR close file", SystemEffect.SAFEPOINT);
         }
 
         @Override
