@@ -113,11 +113,8 @@ public class JfrFeature implements Feature {
 
     @Override
     public void beforeCompilation(BeforeCompilationAccess a) {
-
-        int mapSize = ImageSingletons.lookup(DynamicHubSupport.class).getMaxTypeId() + 1; // Reserve
-                                                                                          // slot 0
-                                                                                          // for
-                                                                                          // error-catcher.
+        // Reserve slot 0 for error-catcher.
+        int mapSize = ImageSingletons.lookup(DynamicHubSupport.class).getMaxTypeId() + 1;
 
         // Create trace-ID map with fixed size.
         ImageSingletons.lookup(JfrTraceIdMap.class).initialize(mapSize);
@@ -130,9 +127,5 @@ public class JfrFeature implements Feature {
             // Off-set by one for error-catcher
             JfrTraceId.assign(clazz, hub.getTypeID() + 1);
         }
-
-        // TODO: get the method count
-        int methodCount = 0;
-        SubstrateJVM.getMethodRepository().initialize(methodCount);
     }
 }
