@@ -26,6 +26,8 @@ package com.oracle.svm.jfr;
 
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.svm.core.jdk.UninterruptibleEntry;
+import com.oracle.svm.core.jdk.UninterruptibleHashtable;
 import org.graalvm.compiler.word.Word;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.Platform;

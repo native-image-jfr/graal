@@ -22,14 +22,15 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.oracle.svm.jfr;
+package com.oracle.svm.core.jdk;
 
 import org.graalvm.nativeimage.c.struct.RawField;
 import org.graalvm.nativeimage.c.struct.RawStructure;
 import org.graalvm.word.PointerBase;
 
 /**
- * The common interface for the LinkedList entries that can be used in an {@link UninterruptibleHashtable}.
+ * The common interface for the LinkedList entries that can be used in an
+ * {@link UninterruptibleHashtable}.
  */
 @RawStructure
 public interface UninterruptibleEntry<T extends UninterruptibleEntry<T>> extends PointerBase {
