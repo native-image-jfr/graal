@@ -87,9 +87,6 @@ public class JfrTraceIdLoadBarrier {
         return JfrTraceId.getTraceId(clazz);
     }
 
-    // Note: Using Consumer<Class<?>> directly drags in other implementations which are not uninterruptible.
-    public interface ClassConsumer extends Consumer<Class<?>> {}
-
     public static void doClasses(ClassConsumer kc, boolean epoch) {
         long predicate = JfrTraceId.TRANSIENT_BIT;
         predicate |= epoch ? JfrTraceIdEpoch.EPOCH_1_BIT : JfrTraceIdEpoch.EPOCH_0_BIT;
@@ -101,5 +98,10 @@ public class JfrTraceIdLoadBarrier {
             }
         }
         assert usedClassCount == classCount(epoch);
+    }
+
+    // Using Consumer<Class<?>> directly drags in other implementations which are not
+    // uninterruptible.
+    public interface ClassConsumer extends Consumer<Class<?>> {
     }
 }

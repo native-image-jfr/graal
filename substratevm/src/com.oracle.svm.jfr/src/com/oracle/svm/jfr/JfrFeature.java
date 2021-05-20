@@ -28,23 +28,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.oracle.svm.core.hub.DynamicHub;
-import com.oracle.svm.core.hub.DynamicHubSupport;
-import com.oracle.svm.core.meta.SharedType;
-import com.oracle.svm.jfr.traceid.JfrTraceId;
-import com.oracle.svm.jfr.traceid.JfrTraceIdEpoch;
-import com.oracle.svm.jfr.traceid.JfrTraceIdMap;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 
 import com.oracle.svm.core.annotate.AutomaticFeature;
 import com.oracle.svm.core.annotate.Uninterruptible;
-import com.oracle.svm.core.jdk.Resources;
+import com.oracle.svm.core.hub.DynamicHub;
+import com.oracle.svm.core.hub.DynamicHubSupport;
 import com.oracle.svm.core.jdk.RuntimeSupport;
+import com.oracle.svm.core.meta.SharedType;
 import com.oracle.svm.core.thread.ThreadListenerFeature;
 import com.oracle.svm.core.thread.ThreadListenerSupport;
 import com.oracle.svm.hosted.FeatureImpl;
+import com.oracle.svm.jfr.traceid.JfrTraceId;
+import com.oracle.svm.jfr.traceid.JfrTraceIdEpoch;
+import com.oracle.svm.jfr.traceid.JfrTraceIdMap;
 import com.oracle.svm.util.ModuleSupport;
 
 import jdk.jfr.Event;
