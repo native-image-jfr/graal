@@ -84,9 +84,11 @@ public class JfrFeature implements Feature {
 
         ImageSingletons.add(SubstrateJVM.class, new SubstrateJVM());
         ImageSingletons.add(JfrManager.class, new JfrManager());
+        ImageSingletons.add(JfrSerializerSupport.class, new JfrSerializerSupport());
         ImageSingletons.add(JfrTraceIdMap.class, new JfrTraceIdMap());
         ImageSingletons.add(JfrTraceIdEpoch.class, new JfrTraceIdEpoch());
 
+        JfrSerializerSupport.get().register(new JfrFrameTypeSerializer());
         ThreadListenerSupport.get().register(SubstrateJVM.getThreadLocal());
     }
 
@@ -112,7 +114,10 @@ public class JfrFeature implements Feature {
     @Override
     public void beforeCompilation(BeforeCompilationAccess a) {
 
-        int mapSize = ImageSingletons.lookup(DynamicHubSupport.class).getMaxTypeId() + 1; // Reserve slot 0 for error-catcher.
+        int mapSize = ImageSingletons.lookup(DynamicHubSupport.class).getMaxTypeId() + 1; // Reserve
+                                                                                          // slot 0
+                                                                                          // for
+                                                                                          // error-catcher.
 
         // Create trace-ID map with fixed size.
         ImageSingletons.lookup(JfrTraceIdMap.class).initialize(mapSize);

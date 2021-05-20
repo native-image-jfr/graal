@@ -79,8 +79,6 @@ public class JfrThreadLocal implements ThreadListener {
         this.threadLocalBufferSize = bufferSize;
     }
 
-    // TODO: we probably need to move a part of this logic as the ThreadStartEvent seems to assume
-    // that it is executed by the parent thread and not by the newly started thread.
     @Uninterruptible(reason = "Accesses a JFR buffer.")
     @Override
     public void beforeThreadRun(IsolateThread isolateThread, Thread javaThread) {
@@ -93,8 +91,6 @@ public class JfrThreadLocal implements ThreadListener {
         if (SubstrateJVM.isRecording()) {
             JfrBuffer buffer = getNativeBuffer();
             if (buffer.isNonNull()) {
-                // TODO: write a thread checkpoint so that JFR knows about the newly started thread.
-
                 // Write a thread start event.
                 JfrNativeEventWriterData data = StackValue.get(JfrNativeEventWriterData.class);
                 JfrNativeEventWriterDataAccess.initialize(data, buffer);

@@ -35,9 +35,9 @@ import com.oracle.svm.jfr.traceid.JfrTraceIdEpoch;
  * storage. This has the benefit that it automatically creates GC-visible references to the String
  * objects, so we don't need any GC-specific handling. The actual operation that modifies the data
  * structure and inserts the String value must be uninterruptible though (see
- * {@link JfrRepository}).
+ * {@link JfrConstantPool}).
  */
-public class JfrStringRepository implements JfrRepository {
+public class JfrStringRepository implements JfrConstantPool {
     @Platforms(Platform.HOSTED_ONLY.class)
     public JfrStringRepository() {
     }

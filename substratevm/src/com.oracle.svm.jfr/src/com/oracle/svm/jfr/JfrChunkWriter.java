@@ -122,7 +122,6 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         filename = outputFile;
         fd = getFileSupport().open(filename, RawFileOperationSupport.FileAccessMode.READ_WRITE);
         writeFileHeader();
-        // TODO: this should probably also write all live threads
         return true;
     }
 
@@ -151,9 +150,7 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
      * includes allocation and GC events. Therefore, it is necessary that we switch
      * to a new epoch in uninterruptible code at a safepoint.
      */
-    // TODO: add more logic to all JfrRepositories so that it is possible to switch the epoch. The
-    // global JFR memory must also support different epochs.
-    public void closeFile(byte[] metadataDescriptor, JfrRepository[] repositories) {
+    public void closeFile(byte[] metadataDescriptor, JfrConstantPool[] repositories) {
         assert lock.isHeldByCurrentThread();
         JfrCloseFileOperation op = new JfrCloseFileOperation();
         op.enqueue();
@@ -207,9 +204,9 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         writeBoolean(true); // flush
 
         SignedWord poolCountPos = getFileSupport().position(fd);
-        getFileSupport().writeInt(fd, 0); // We'll fix this later.
-        // TODO: This should be simplified, serializers and repositories can probably go under the same structure.
-        int poolCount = writeRepositories(repositories);
+        getFileSupport().writeInt(fd, 0); // We'll patch this later.
+        JfrConstantPool[] serializers = JfrSerializerSupport.get().getSerializers();
+        int poolCount = writeConstantPools(serializers) + writeConstantPools(repositories);
         SignedWord currentPos = getFileSupport().position(fd);
         getFileSupport().seek(fd, poolCountPos);
         getFileSupport().writeInt(fd, makePaddedInt(poolCount));
@@ -219,9 +216,9 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         return start;
     }
 
-    private int writeRepositories(JfrRepository[] constantPools) {
+    private int writeConstantPools(JfrConstantPool[] constantPools) {
         int count = 0;
-        for (JfrRepository constantPool : constantPools) {
+        for (JfrConstantPool constantPool : constantPools) {
             int poolCount = constantPool.write(this);
             count += poolCount;
         }
@@ -346,14 +343,15 @@ public final class JfrChunkWriter implements JfrUnlockedChunkWriter {
         UTF8_BYTE_ARRAY(3),
         CHAR_ARRAY(4),
         LATIN1_BYTE_ARRAY(5);
+
         public byte byteValue;
+
         StringEncoding(int byteValue) {
             this.byteValue = (byte) byteValue;
         }
     }
 
     public void writeString(String str) {
-        // TODO: Implement writing strings in the other encodings
         if (str.isEmpty()) {
             getFileSupport().writeByte(fd, StringEncoding.EMPTY_STRING.byteValue);
         } else {

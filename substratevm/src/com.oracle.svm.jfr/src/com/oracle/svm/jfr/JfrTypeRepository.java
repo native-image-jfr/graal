@@ -37,10 +37,11 @@ import com.oracle.svm.jfr.traceid.JfrTraceId;
 import com.oracle.svm.jfr.traceid.JfrTraceIdEpoch;
 import com.oracle.svm.jfr.traceid.JfrTraceIdLoadBarrier;
 
-public class JfrTypeRepository implements JfrRepository {
+public class JfrTypeRepository implements JfrConstantPool {
     static class PackageInfo {
         private final long id;
         private final Module module;
+
         PackageInfo(long id, Module module) {
             this.id = id;
             this.module = module;
@@ -106,6 +107,7 @@ public class JfrTypeRepository implements JfrRepository {
                 return 0;
             }
         }
+
         boolean addClassLoader(ClassLoader classLoader) {
             if (!classLoaders.containsKey(classLoader)) {
                 classLoaders.put(classLoader, ++currentClassLoaderId);
@@ -139,7 +141,8 @@ public class JfrTypeRepository implements JfrRepository {
 
     @Override
     public int write(JfrChunkWriter writer) {
-        // Visit all used classes, and collect their packages, modules, classloaders and possibly referenced
+        // Visit all used classes, and collect their packages, modules, classloaders and possibly
+        // referenced
         // classes.
         TypeInfo typeInfo = new TypeInfo();
         JfrTraceIdLoadBarrier.ClassConsumer classVisitor = aClass -> visitClass(typeInfo, aClass);
@@ -219,7 +222,7 @@ public class JfrTypeRepository implements JfrRepository {
         writer.writeCompressedLong(pkgInfo.id);  // id
         writer.writeCompressedLong(symbolRepo.getSymbolId(pkgName, true, true));
         writer.writeCompressedLong(typeInfo.getModuleId(pkgInfo.module));
-        writer.writeBoolean(false); // TODO: 'exported' field: what's this?
+        writer.writeBoolean(false); // exported
     }
 
     private int writeModules(JfrChunkWriter writer, TypeInfo typeInfo) {

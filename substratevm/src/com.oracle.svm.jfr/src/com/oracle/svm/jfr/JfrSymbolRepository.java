@@ -48,7 +48,7 @@ import com.oracle.svm.jfr.traceid.JfrTraceIdEpoch;
 /**
  * In Native Image, we use {@link java.lang.String} objects that live in the image heap as symbols.
  */
-public class JfrSymbolRepository implements JfrRepository {
+public class JfrSymbolRepository implements JfrConstantPool {
     private final JfrSymbolHashtable table0;
     private final JfrSymbolHashtable table1;
 
@@ -62,7 +62,6 @@ public class JfrSymbolRepository implements JfrRepository {
         table0.teardown();
         table1.teardown();
     }
-
 
     @Uninterruptible(reason = "Called by uninterruptible code.")
     private JfrSymbolHashtable getTable() {

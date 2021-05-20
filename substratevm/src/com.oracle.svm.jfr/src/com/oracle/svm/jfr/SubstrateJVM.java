@@ -52,7 +52,7 @@ class SubstrateJVM {
     private final JfrTypeRepository typeRepo;
     private final JfrMethodRepository methodRepo;
     private final JfrStackTraceRepository stackTraceRepo;
-    private final JfrRepository[] repositories;
+    private final JfrConstantPool[] repositories;
 
     private final JfrThreadLocal threadLocal;
     private final JfrGlobalMemory globalMemory;
@@ -80,10 +80,9 @@ class SubstrateJVM {
         typeRepo = new JfrTypeRepository();
         methodRepo = new JfrMethodRepository(typeRepo, symbolRepo);
         stackTraceRepo = new JfrStackTraceRepository(methodRepo);
-        JfrFrameTypeSerializer frameTypeSerializer = new JfrFrameTypeSerializer();
-        // NOTE: The ordering of repositories in the array dictates the order in which the repositories
-        // (constant pools) will be written in the recording.
-        repositories = new JfrRepository[]{frameTypeSerializer, stringRepo, typeRepo, methodRepo, stackTraceRepo, symbolRepo};
+        // The ordering in the array dictates the order in which the repositories (constant pools)
+        // will be written in the recording.
+        repositories = new JfrConstantPool[]{stringRepo, typeRepo, methodRepo, stackTraceRepo, symbolRepo};
 
         threadLocal = new JfrThreadLocal();
         globalMemory = new JfrGlobalMemory();
@@ -357,7 +356,7 @@ class SubstrateJVM {
 
     /** See {@link JVM#setRepositoryLocation}. */
     public void setRepositoryLocation(String dirText) {
-        // TODO: implement
+        // Would only be used in case of an emergency dump, which is not supported at the moment.
     }
 
     /** See {@link JVM#abort}. */
@@ -397,7 +396,7 @@ class SubstrateJVM {
 
     /** See {@link JVM#subscribeLogLevel}. */
     public void subscribeLogLevel(LogTag lt, int tagSetId) {
-        // TODO: implement
+        // Currently unused because logging support is minimal.
     }
 
     private static LogLevel getLogLevel(int level) {

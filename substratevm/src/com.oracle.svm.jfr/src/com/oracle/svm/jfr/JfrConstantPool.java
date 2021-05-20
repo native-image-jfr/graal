@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,24 +24,18 @@
  */
 package com.oracle.svm.jfr;
 
-import org.graalvm.nativeimage.Platform;
-import org.graalvm.nativeimage.Platforms;
+import com.oracle.svm.core.annotate.Uninterruptible;
 
-public class JfrFrameTypeSerializer implements JfrConstantPool {
-    @Platforms(Platform.HOSTED_ONLY.class)
-    public JfrFrameTypeSerializer() {
-    }
-
-    @Override
-    public int write(JfrChunkWriter writer) {
-        writer.writeCompressedLong(JfrTypes.FrameType.getId());
-
-        JfrFrameType[] values = JfrFrameType.values();
-        writer.writeCompressedLong(values.length);
-        for (int i = 0; i < values.length; i++) {
-            writer.writeCompressedInt(i);
-            writer.writeString(values[i].getText());
-        }
-        return 1;
-    }
+/**
+ * Epoch-based storage for metadata. Switching the epoch and iterating the collected data may only
+ * be done at a safepoint. All methods that manipulate data in the constant pool must be
+ * {@link Uninterruptible} to guarantee that a safepoint always sees a consistent state. Otherwise,
+ * other JFR code could see partially added data when it tries to iterate the data at a safepoint.
+ */
+public interface JfrConstantPool {
+    /**
+     * Persists the data of the previous epoch. May only be called at a safepoint, after the epoch
+     * changed.
+     */
+    int write(JfrChunkWriter writer);
 }
