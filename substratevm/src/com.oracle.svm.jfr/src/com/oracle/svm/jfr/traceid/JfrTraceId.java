@@ -44,13 +44,6 @@ public class JfrTraceId {
 
     private static final int TRACE_ID_SHIFT = 16;
 
-    // Epoch-related constants.
-    private static final long USED_BIT = 1;
-    private static final int EPOCH_1_SHIFT = 0;
-    private static final int EPOCH_2_SHIFT = 1;
-    private static final long USED_EPOCH_1_BIT = USED_BIT << EPOCH_1_SHIFT;
-    private static final long USED_EPOCH_2_BIT = USED_BIT << EPOCH_2_SHIFT;
-
     private static final long JDK_JFR_EVENT_SUBCLASS = 16;
     private static final long JDK_JFR_EVENT_CLASS = 32;
     private static final long EVENT_HOST_KLASS = 64;

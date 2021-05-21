@@ -66,11 +66,6 @@ public class JfrSymbolRepository implements JfrConstantPool {
     }
 
     @Uninterruptible(reason = "Called by uninterruptible code.")
-    private JfrSymbolHashtable getTable() {
-        return getTable(false);
-    }
-
-    @Uninterruptible(reason = "Called by uninterruptible code.")
     private JfrSymbolHashtable getTable(boolean previousEpoch) {
         boolean epoch = previousEpoch ? JfrTraceIdEpoch.getInstance().previousEpoch() : JfrTraceIdEpoch.getInstance().currentEpoch();
         if (epoch) {
@@ -92,7 +87,6 @@ public class JfrSymbolRepository implements JfrConstantPool {
 
     @Uninterruptible(reason = "Epoch must not change while in this method.")
     public long getSymbolId(String imageHeapString, boolean previousEpoch, boolean replaceDotWithSlash) {
-
         if (imageHeapString == null) {
             return 0;
         }

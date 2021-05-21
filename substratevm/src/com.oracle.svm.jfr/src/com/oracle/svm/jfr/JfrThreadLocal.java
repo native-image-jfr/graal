@@ -173,13 +173,13 @@ public class JfrThreadLocal implements ThreadListener {
 
     @Uninterruptible(reason = "Accesses a JFR buffer.", callerMustBe = true)
     public static JfrBuffer getJavaBuffer(IsolateThread thread) {
-        assert(VMOperation.isInProgressAtSafepoint());
+        assert (VMOperation.isInProgressAtSafepoint());
         return javaBuffer.get(thread);
     }
 
     @Uninterruptible(reason = "Accesses a JFR buffer.", callerMustBe = true)
     public static JfrBuffer getNativeBuffer(IsolateThread thread) {
-        assert(VMOperation.isInProgressAtSafepoint());
+        assert (VMOperation.isInProgressAtSafepoint());
         return nativeBuffer.get(thread);
     }
 
@@ -194,7 +194,6 @@ public class JfrThreadLocal implements ThreadListener {
     public static JfrBuffer flush(JfrBuffer threadLocalBuffer, UnsignedWord uncommitted, int requested) {
         assert threadLocalBuffer.isNonNull();
 
-        JfrBuffer result = threadLocalBuffer;
         UnsignedWord unflushedSize = JfrBufferAccess.getUnflushedSize(threadLocalBuffer);
         if (unflushedSize.aboveThan(0)) {
             JfrGlobalMemory globalMemory = SubstrateJVM.getGlobalMemory();
@@ -211,8 +210,8 @@ public class JfrThreadLocal implements ThreadListener {
         }
         JfrBufferAccess.reinitialize(threadLocalBuffer);
         assert JfrBufferAccess.getUnflushedSize(threadLocalBuffer).equal(0);
-        if (result.getSize().aboveOrEqual(uncommitted.add(requested))) {
-            return result;
+        if (threadLocalBuffer.getSize().aboveOrEqual(uncommitted.add(requested))) {
+            return threadLocalBuffer;
         }
         return WordFactory.nullPointer();
     }

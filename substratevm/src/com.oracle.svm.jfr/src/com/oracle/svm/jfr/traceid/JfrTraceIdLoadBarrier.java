@@ -25,12 +25,11 @@
 
 package com.oracle.svm.jfr.traceid;
 
+import java.util.function.Consumer;
+
 import com.oracle.svm.core.annotate.Uninterruptible;
 import com.oracle.svm.core.heap.Heap;
 import com.oracle.svm.core.jdk.UninterruptibleUtils;
-import com.oracle.svm.core.thread.VMOperation;
-
-import java.util.function.Consumer;
 
 public class JfrTraceIdLoadBarrier {
     private static final UninterruptibleUtils.AtomicInteger classCount0 = new UninterruptibleUtils.AtomicInteger(0);
