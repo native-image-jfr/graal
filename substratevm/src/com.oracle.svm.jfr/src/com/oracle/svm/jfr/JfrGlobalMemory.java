@@ -100,7 +100,7 @@ public class JfrGlobalMemory {
             JfrBufferAccess.increasePos(promotionBuffer, unflushedSize);
             shouldSignal = recorderThread.shouldSignal(promotionBuffer);
         } finally {
-             releasePromotionBuffer(promotionBuffer);
+            releasePromotionBuffer(promotionBuffer);
         }
         JfrBufferAccess.increaseTop(threadLocalBuffer, unflushedSize);
         // Notify the thread that writes the global memory to disk.
@@ -148,12 +148,12 @@ public class JfrGlobalMemory {
 
     @Uninterruptible(reason = "Epoch must not change while in this method.")
     private static boolean shouldDiscard() {
-        // Currently unused as in memory recording is not supported yet.
+        // Currently unused as in-memory recording is not supported yet.
         return false;
     }
 
     @Uninterruptible(reason = "Epoch must not change while in this method.")
     private static void discardOldest() {
-        VMError.unimplemented();
+        throw VMError.shouldNotReachHere("Not supported at the moment.");
     }
 }
